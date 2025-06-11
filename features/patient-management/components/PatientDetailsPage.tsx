@@ -34,10 +34,10 @@ const PatientDetailsPage: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
 
-  // usePatientData ஹூக்கைப் பயன்படுத்துகிறோம்
+  // usePatientData ஹூக்கைப் பயன்படுத்துகிறோம் - setError ஐ destructure செய்கிறோம்
   const {
     patient, medicalHistory, medications, allergies, insuranceBilling, documents,
-    isLoading, error, refreshData
+    isLoading, error, setError, refreshData
   } = usePatientData(patientId);
 
   // மோடல் நிலைகள்
