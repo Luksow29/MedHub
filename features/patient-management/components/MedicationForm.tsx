@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { NewDbMedication } from '../../../types'; // பாதை சரிபார்க்கவும்
-import Button from '../../components/shared/Button'; // பாதை சரிபார்க்கவும்
+import Button from '../../../components/shared/Button'; // சரி செய்யப்பட்ட பாதை
 import { formatDateToInput } from '../../../utils/dateHelpers'; // பாதை சரிபார்க்கவும்
 
 interface MedicationFormProps {

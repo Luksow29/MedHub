@@ -17,7 +17,7 @@ import Modal from './shared/Modal';
 
 // அம்ச கோப்புறைகளிலிருந்து இறக்குமதி (features/patient-management இலிருந்து)
 import PatientForm from '../features/patient-management/components/PatientForm';
-import PatientList from '../features/patient-management/PatientList'; // இந்த இறக்குமதி சரியாக உள்ளது.
+import PatientList from '../features/patient-management/components/PatientList'; // சரி செய்யப்பட்ட பாதை
 
 // இதே components கோப்புறைக்குள் உள்ளவை
 import AppointmentForm from './AppointmentForm';

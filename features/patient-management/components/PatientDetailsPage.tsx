@@ -12,8 +12,8 @@ import {
   PatientDocument, NewDbPatientDocument,
 } from '../../../types'; // பாதை சரிபார்க்கவும்
 
-import Button from '../../components/shared/Button'; // பாதை சரிபார்க்கவும்
-import Modal from '../../components/shared/Modal';   // பாதை சரிபார்க்கவும்
+import Button from '../../../components/shared/Button'; // சரி செய்யப்பட்ட பாதை
+import Modal from '../../../components/shared/Modal';   // சரி செய்யப்பட்ட பாதை
 import PatientForm from './PatientForm'; // அதே கோப்புறைக்குள் உள்ளது
 import MedicalHistoryForm from './MedicalHistoryForm';
 import MedicationForm from './MedicationForm';
@@ -23,12 +23,12 @@ import DocumentUploadComponent from './DocumentUploadComponent';
 import { usePatientData } from '../hooks/usePatientData'; // புதிய ஹூக்கை இறக்குமதி செய்கிறோம்
 
 // API செயல்பாடுகளை இறக்குமதி செய்கிறோம்
-import * as PatientAPI from '../../api/patients';
-import * as MedicalHistoryAPI from '../../api/medicalHistory';
-import * as MedicationAPI from '../../api/medications';
-import * as AllergyAPI from '../../api/allergies';
-import * as InsuranceBillingAPI from '../../api/insuranceBilling';
-import * as DocumentAPI from '../../api/documents';
+import * as PatientAPI from '../../../api/patients'; // சரி செய்யப்பட்ட பாதை
+import * as MedicalHistoryAPI from '../../../api/medicalHistory'; // சரி செய்யப்பட்ட பாதை
+import * as MedicationAPI from '../../../api/medications'; // சரி செய்யப்பட்ட பாதை
+import * as AllergyAPI from '../../../api/allergies'; // சரி செய்யப்பட்ட பாதை
+import * as InsuranceBillingAPI from '../../../api/insuranceBilling'; // சரி செய்யப்பட்ட பாதை
+import * as DocumentAPI from '../../../api/documents'; // சரி செய்யப்பட்ட பாதை
 
 const PatientDetailsPage: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
