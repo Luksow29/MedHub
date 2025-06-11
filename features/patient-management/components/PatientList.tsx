@@ -1,5 +1,6 @@
 // features/patient-management/components/PatientList.tsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Patient, ReminderMethod } from '../../../types';
 
 interface PatientListProps {
@@ -54,6 +55,7 @@ const PatientList: React.FC<PatientListProps> = ({ patients }) => {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">தொலைபேசி</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">மின்னஞ்சல்</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">விருப்பமான தொடர்பு</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">செயல்கள்</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-slate-200">
@@ -64,6 +66,18 @@ const PatientList: React.FC<PatientListProps> = ({ patients }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{patient.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                   {getReminderMethodUILabel(patient.preferredContactMethod)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                  <Link
+                    to={`/patient/${patient.id}`}
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-sky-700 bg-sky-100 hover:bg-sky-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 mr-1">
+                      <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                      <path fillRule="evenodd" d="M1.38 8.28a.87.87 0 0 1 0-.566 7.003 7.003 0 0 1 13.24.006.87.87 0 0 1 0 .566A7.003 7.003 0 0 1 1.379 8.28ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" clipRule="evenodd" />
+                    </svg>
+                    விவரங்களைப் பார்க்கவும்
+                  </Link>
                 </td>
               </tr>
             ))}
