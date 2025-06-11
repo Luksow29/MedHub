@@ -42,7 +42,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout }) => {
   const [error, setError] = useState<string | null>(null);
 
   const getBilingualLabel = (english: string, tamil: string) => {
-    return `<span class="math-inline">\{english\} \(</span>{tamil})`;
+    return `${english} (${tamil})`;
   };
 
   const mapDbPatientToClient = (dbPatient: DbPatient): Patient => ({
