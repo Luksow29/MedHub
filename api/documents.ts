@@ -1,56 +1,105 @@
 // src/api/documents.ts
 
 import { supabase } from '../lib/supabase';
-import { DbPatientDocument, NewDbPatientDocument } from '../types';
-
-export const getPatientDocumentsByPatientId = async (patientId: string, userId: string) => {
-  return supabase.from('patient_documents').select('*').eq('patient_id', patientId).eq('user_id', userId).order('uploaded_at', { ascending: false });
-};
+import { NewDbPatientDocument } from '../types';
 
 export const uploadPatientDocument = async (
-  data: Omit<NewDbPatientDocument, 'file_name' | 'file_path' | 'uploaded_at'>, // UI இலிருந்து வரும் பகுதிகள்
-  file: File,
-  patientId: string,
+  data: Omit<NewDbPatientDocument, 'file_name' | 'file_path' | 'uploaded_at'>, 
+  file: File, 
+  patientId: string, 
   userId: string
 ) => {
-  const filePath = `patient_records/${patientId}/${data.document_type || 'untyped'}/${file.name}`;
+  try {
+    // Generate a unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}_${file.name}`;
+    const filePath = `patient_records/${patientId}/${data.document_type}/${fileName}`;
 
-  // 1. சுபாபேஸ் சேமிப்பகத்தில் கோப்பைப் பதிவேற்றவும்
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('patient_documents') // உங்கள் பக்கெட்டின் பெயர் (முன்பு உருவாக்கியது)
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false,
-    });
+    // Upload file to storage - using correct bucket name 'patientdocuments'
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('patientdocuments')
+      .upload(filePath, file);
 
-  if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-  // 2. பதிவேற்றிய கோப்பின் பொது URL ஐப் பெறவும்
-  const publicUrl = supabase.storage.from('patient_documents').getPublicUrl(filePath).data.publicUrl;
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('patientdocuments')
+      .getPublicUrl(filePath);
 
-  // 3. தரவுத்தளத்தில் ஆவண metadata ஐச் செருகவும்
-  const { data: newDocEntry, error: dbError } = await supabase
-    .from('patient_documents')
-    .insert({
+    // Insert document record into database
+    const documentData = {
       ...data,
       patient_id: patientId,
-      user_id: userId, // User who uploaded
+      user_id: userId,
       file_name: file.name,
-      file_path: publicUrl, // பொது URL ஐ சேமிக்கவும்
-      uploaded_at: new Date().toISOString() // பதிவேற்றிய நேரத்தை பதிவு செய்கிறோம்
-    })
-    .select()
-    .single();
+      file_path: publicUrl,
+      uploaded_at: new Date().toISOString(),
+    };
 
-  if (dbError) throw dbError;
-  return { data: newDocEntry, error: null };
+    const { data: dbData, error: dbError } = await supabase
+      .from('patient_documents')
+      .insert(documentData)
+      .select()
+      .single();
+
+    if (dbError) throw dbError;
+
+    return { data: dbData, error: null };
+  } catch (error: any) {
+    console.error('Document upload error:', error);
+    return { data: null, error };
+  }
 };
 
-export const deletePatientDocument = async (id: string, filePath: string, userId: string) => {
-  // 1. சேமிப்பகத்திலிருந்து கோப்பை நீக்க
-  const { error: storageError } = await supabase.storage.from('patient_documents').remove([filePath.split('patient_records/')[1]]); // பக்கெட்டிலிருந்து பாதை
-  if (storageError) console.warn("சேமிப்பகத்திலிருந்து ஆவணத்தை நீக்குவதில் பிழை:", storageError.message); // பிழை ஏற்பட்டாலும் தொடரலாம்
+export const deletePatientDocument = async (documentId: string, userId: string) => {
+  try {
+    // First get the document to find the file path
+    const { data: document, error: fetchError } = await supabase
+      .from('patient_documents')
+      .select('file_path')
+      .eq('id', documentId)
+      .eq('user_id', userId)
+      .single();
 
-  // 2. தரவுத்தள பதிவை நீக்க
-  return supabase.from('patient_documents').delete().eq('id', id).eq('user_id', userId);
+    if (fetchError) throw fetchError;
+
+    // Extract file path from the public URL for storage deletion
+    const url = new URL(document.file_path);
+    const pathParts = url.pathname.split('/');
+    const filePath = pathParts.slice(pathParts.indexOf('patient_records')).join('/');
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('patientdocuments')
+      .remove([filePath]);
+
+    if (storageError) {
+      console.warn('Storage deletion error:', storageError);
+      // Continue with database deletion even if storage deletion fails
+    }
+
+    // Delete from database
+    const { error: dbError } = await supabase
+      .from('patient_documents')
+      .delete()
+      .eq('id', documentId)
+      .eq('user_id', userId);
+
+    if (dbError) throw dbError;
+
+    return { error: null };
+  } catch (error: any) {
+    console.error('Document deletion error:', error);
+    return { error };
+  }
+};
+
+export const getPatientDocuments = async (patientId: string, userId: string) => {
+  return supabase
+    .from('patient_documents')
+    .select('*')
+    .eq('patient_id', patientId)
+    .eq('user_id', userId)
+    .order('uploaded_at', { ascending: false });
 };
