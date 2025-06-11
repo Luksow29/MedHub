@@ -20,7 +20,7 @@ const App: React.FC = () => {
       setLoading(false);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session?.user || null);
         setLoading(false);
@@ -28,7 +28,7 @@ const App: React.FC = () => {
     );
 
     return () => {
-      authListener.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
