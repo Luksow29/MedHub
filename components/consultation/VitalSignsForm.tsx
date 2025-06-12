@@ -48,9 +48,6 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
   
-  // ***மேம்பாடு 1: Props மாறும் போது படிவத்தின் நிலையை மீட்டமைத்தல்***
-  // இந்த useEffect, modal திறக்கப்படும்போது அல்லது வேறு நோயாளி தேர்ந்தெடுக்கப்படும்போது,
-  // படிவத்தின் மதிப்புகளைப் புதிய vitalSigns prop உடன் ஒத்திசைக்கிறது.
   useEffect(() => {
     if (isOpen) {
       setTemperature(vitalSigns?.temperature ?? null);
@@ -67,11 +64,10 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
       setBmi(vitalSigns?.bmi ?? null);
       setPainScore(vitalSigns?.painScore ?? null);
       setNotes(vitalSigns?.notes || '');
-      setError(null); // முந்தைய பிழைகளை நீக்க
+      setError(null);
     }
   }, [vitalSigns, isOpen]);
 
-  // ***மேம்பாடு 2: BMI கணக்கிட உதவிச் செயல்பாட்டைப் பயன்படுத்துதல்***
   useEffect(() => {
     if (height !== null && weight !== null && height > 0 && weight > 0) {
       const calculatedBmi = calculateBMI(height, heightUnit, weight, weightUnit);
@@ -81,7 +77,6 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
     }
   }, [height, heightUnit, weight, weightUnit]);
 
-  // படிவத்திற்கு வெளியே கிளிக் செய்தால் மூடுவதற்கான useEffect
   useEffect(() => {
     if (!isOpen) return;
 
@@ -140,7 +135,6 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
         onSubmit={handleSubmit}
         className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6"
       >
-        {/* Close Button */}
         <button
           type="button"
           onClick={onCancel}
@@ -310,7 +304,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
                 className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max"
               >
                 <option value={WeightUnit.KG}>{getBilingualLabel("kg", "கிலோ")}</option>
-                <option value={WeightUnit.LBS}>{getBilingualLabel("lbs", "பவுண்டுகள்")}</option>
+                <option value={WeightUnit.LB}>{getBilingualLabel("lbs", "பவுண்டுகள்")}</option>
               </select>
             </div>
           </div>
@@ -378,9 +372,6 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   );
 };
 
-// உதவிச் செயல்பாடுகள் (Helper Functions)
-
-// BMI கணக்கிடுவதற்கான உதவிச் செயல்பாடு
 const calculateBMI = (
   height: number,
   heightUnit: HeightUnit,
@@ -391,22 +382,19 @@ const calculateBMI = (
     return 0;
   }
   const heightInMeters = heightUnit === HeightUnit.CM ? height / 100 : height * 0.0254;
-  const weightInKg = weightUnit === WeightUnit.KG ? weight : weight * 0.453592;
+  const weightInKg = weightUnit === WeightUnit.LB ? weight * 0.453592 : weight;
   if (heightInMeters === 0) {
     return 0;
   }
   return weightInKg / (heightInMeters * heightInMeters);
 };
 
-// இந்த செயல்பாடுகள் இந்த கோப்பில் பயன்படுத்தப்படவில்லை, ஆனால் தரவைக் காண்பிக்கும் பிற கூறுகளில் பயனுள்ளதாக இருக்கும்.
-// வலி மதிப்பெண் அடிப்படையில் வண்ணத்தைப் பெறுவதற்கான உதவிச் செயல்பாடு
 const getPainScoreColor = (painScore: number): string => {
   if (painScore <= 3) return 'bg-green-500';
   if (painScore <= 6) return 'bg-yellow-500';
   return 'bg-red-500';
 };
 
-// வலி மதிப்பெண் லேபிளைப் பெறுவதற்கான உதவிச் செயல்பாடு
 const getPainScoreLabel = (painScore: number): string => {
   if (painScore <= 3) return 'Mild';
   if (painScore <= 6) return 'Moderate';
