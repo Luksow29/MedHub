@@ -18,7 +18,7 @@ import WaitlistPage from './pages/appointments/WaitlistPage';
 // Patient Management Pages
 import PatientDirectoryPage from './pages/patients/PatientDirectoryPage';
 import PatientSearchPage from './pages/patients/PatientSearchPage';
-import MedicalRecordsPage from './pages/patients/MedicalRecordsPage';
+import MedicalRecordsPage from './pages/patients/MedicalRecordsPage.tsx';
 import PatientDetailsPage from './features/patient-management/components/PatientDetailsPage';
 
 const App: React.FC = () => {
