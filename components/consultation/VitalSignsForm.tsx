@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // useRef ஐச் சேர்க்கிறோம்
+import React, { useState, useEffect, useRef } from 'react';
 import {
   VitalSign,
   NewDbVitalSigns,
@@ -48,7 +48,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const formRef = useRef<HTMLFormElement>(null); // படிவத்திற்கான useRef
+  const formRef = useRef<HTMLFormElement>(null);
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
@@ -128,7 +128,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
       <form
         ref={formRef}
         onSubmit={handleSubmit}
-        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6" // max-h-[90vh] மற்றும் overflow-y-auto சேர்க்கப்பட்டது
+        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6"
       >
         {/* Close Button */}
         <button
@@ -154,7 +154,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Temperature */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="temperature" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Temperature", "வெப்பநிலை")}
             </label>
@@ -173,7 +173,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
               <select
                 value={temperatureUnit}
                 onChange={(e) => setTemperatureUnit(e.target.value as TemperatureUnit)}
-                className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max" // min-w-max சேர்க்கப்பட்டது
+                className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max"
               >
                 <option value={TemperatureUnit.CELSIUS}>{getBilingualLabel("Celsius", "செல்சியஸ்")}</option>
                 <option value={TemperatureUnit.FAHRENHEIT}>{getBilingualLabel("Fahrenheit", "பாரன்ஹீட்")}</option>
@@ -182,7 +182,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* Heart Rate */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="heartRate" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Heart Rate", "இதய துடிப்பு")}
             </label>
@@ -197,7 +197,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* Respiratory Rate */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="respiratoryRate" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Respiratory Rate", "சுவாச வீதம்")}
             </label>
@@ -239,7 +239,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* Oxygen Saturation */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="oxygenSaturation" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Oxygen Saturation", "ஆக்ஸிஜன் செறிவூட்டல்")}
             </label>
@@ -256,7 +256,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* Height */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="height" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Height", "உயரம்")}
             </label>
@@ -272,7 +272,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
               <select
                 value={heightUnit}
                 onChange={(e) => setHeightUnit(e.target.value as HeightUnit)}
-                className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max" // min-w-max சேர்க்கப்பட்டது
+                className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max"
               >
                 <option value={HeightUnit.CM}>{getBilingualLabel("cm", "செ.மீ")}</option>
                 <option value={HeightUnit.IN}>{getBilingualLabel("in", "அங்குலம்")}</option>
@@ -281,7 +281,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* Weight */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="weight" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Weight", "எடை")}
             </label>
@@ -297,7 +297,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
               <select
                 value={weightUnit}
                 onChange={(e) => setWeightUnit(e.target.value as WeightUnit)}
-                className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max" // min-w-max சேர்க்கப்பட்டது
+                className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0 min-w-max"
               >
                 <option value={WeightUnit.KG}>{getBilingualLabel("kg", "கிலோ")}</option>
                 <option value={WeightUnit.LBS}>{getBilingualLabel("lbs", "பவுண்டுகள்")}</option>
@@ -306,7 +306,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* BMI */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="bmi" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("BMI", "பிஎம்ஐ")}
             </label>
@@ -320,7 +320,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           </div>
 
           {/* Pain Score */}
-          <div>
+          <div className="col-span-1">
             <label htmlFor="painScore" className="block text-sm font-medium text-slate-700 pb-1">
               {getBilingualLabel("Pain Score", "வலிப் புள்ளி")}
             </label>
@@ -338,7 +338,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
         </div>
 
         {/* Notes */}
-        <div>
+        <div className="col-span-full"> {/* Notes ஐ முழு அகலத்திற்கு விரிவுபடுத்தவும் */}
           <label htmlFor="notes" className="block text-sm font-medium text-slate-700 pb-1">
             {getBilingualLabel("Notes (Optional)", "குறிப்புகள் (விருப்பமானது)")}
           </label>
@@ -352,7 +352,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex justify-end space-x-3 pt-4 col-span-full">
           <Button type="button" variant="secondary" onClick={onCancel} disabled={isLoading}>
             {getBilingualLabel("Cancel", "ரத்துசெய்")}
           </Button>
