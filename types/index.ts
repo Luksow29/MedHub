@@ -10,36 +10,6 @@ export enum ReminderMethod {
   NONE = 'None',
 }
 
-export enum AppointmentStatus {
-  SCHEDULED = 'scheduled',
-  CONFIRMED = 'confirmed',
-  CANCELLED = 'cancelled',
-  COMPLETED = 'completed',
-  NO_SHOW = 'no_show',
-  RESCHEDULED = 'rescheduled',
-}
-
-export enum RecurrencePattern {
-  NONE = 'none',
-  DAILY = 'daily',
-  WEEKLY = 'weekly',
-  MONTHLY = 'monthly',
-  CUSTOM = 'custom',
-}
-
-export enum WaitlistStatus {
-  ACTIVE = 'active',
-  NOTIFIED = 'notified',
-  CONVERTED = 'converted',
-  CANCELLED = 'cancelled',
-}
-
-export enum ConflictType {
-  TIME_OVERLAP = 'time_overlap',
-  DOUBLE_BOOKING = 'double_booking',
-  RESOURCE_CONFLICT = 'resource_conflict',
-}
-
 // UI Views
 export enum View {
   AUTH = 'AUTH',
@@ -135,62 +105,10 @@ export interface DbAppointment {
   patient_id: string;
   date: string;
   time: string;
-  duration: number; // Added from migration
   reason: string;
-  service_type: string | null; // Added from migration
-  status: AppointmentStatus; // Added from migration
-  notes: string | null; // Added from migration
-  is_recurring: boolean; // Added from migration
-  recurrence_pattern: RecurrencePattern; // Added from migration
-  recurrence_interval: number; // Added from migration
-  recurrence_end_date: string | null; // Added from migration
-  recurrence_count: number | null; // Added from migration
-  parent_appointment_id: string | null; // Added from migration
   reminder_sent: boolean;
   reminder_sent_at: string | null;
   reminder_method_used: ReminderMethod | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DbWaitlistEntry {
-  id: string;
-  user_id: string;
-  patient_id: string;
-  preferred_date: string | null;
-  preferred_time: string | null;
-  service_type: string | null;
-  reason: string;
-  priority: number;
-  status: WaitlistStatus;
-  notes: string | null;
-  notified_at: string | null;
-  expires_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DbTimeSlot {
-  id: string;
-  user_id: string;
-  day_of_week: number; // 0 = Sunday, 1 = Monday, etc.
-  start_time: string;
-  end_time: string;
-  is_available: boolean;
-  buffer_time: number; // minutes between appointments
-  max_appointments: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DbAppointmentConflict {
-  id: string;
-  user_id: string;
-  appointment_id: string;
-  conflicting_appointment_id: string;
-  conflict_type: ConflictType;
-  resolved: boolean;
-  resolution_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -284,17 +202,7 @@ export interface Appointment {
   patientId: string;
   date: string;
   time: string;
-  duration: number;
   reason: string;
-  serviceType: string | null;
-  status: AppointmentStatus;
-  notes: string | null;
-  isRecurring: boolean;
-  recurrencePattern: RecurrencePattern;
-  recurrenceInterval: number;
-  recurrenceEndDate: string | null;
-  recurrenceCount: number | null;
-  parentAppointmentId: string | null;
   reminderSent: boolean;
   reminderSentAt: string | null;
   reminderMethodUsed: ReminderMethod | null;
@@ -305,53 +213,6 @@ export interface Appointment {
   patientPhoneNumber?: string;
   patientEmail?: string;
   patientPreferredContactMethod?: ReminderMethod;
-}
-
-export interface WaitlistEntry {
-  id: string;
-  userId: string;
-  patientId: string;
-  preferredDate: string | null;
-  preferredTime: string | null;
-  serviceType: string | null;
-  reason: string;
-  priority: number;
-  status: WaitlistStatus;
-  notes: string | null;
-  notifiedAt: string | null;
-  expiresAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  // Patient details from join
-  patientName?: string;
-  patientPhone?: string;
-  patientEmail?: string;
-  patientPreferredContactMethod?: ReminderMethod;
-}
-
-export interface TimeSlot {
-  id: string;
-  userId: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-  bufferTime: number;
-  maxAppointments: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AppointmentConflict {
-  id: string;
-  userId: string;
-  appointmentId: string;
-  conflictingAppointmentId: string;
-  conflictType: ConflictType;
-  resolved: boolean;
-  resolutionNotes: string | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 // --- Types for Data Submitted to Supabase (Omit DB-generated fields) ---
@@ -380,55 +241,3 @@ export type NewDbPatientDocument = Omit<DbPatientDocument, 'id' | 'created_at' |
 
 export type NewDbAppointment = Omit<DbAppointment, 'id' | 'created_at' | 'updated_at' | 'reminder_sent' | 'reminder_sent_at' | 'reminder_method_used' | 'user_id'>;
 export type UpdateDbAppointment = Partial<Omit<DbAppointment, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
-
-export type NewDbWaitlistEntry = Omit<DbWaitlistEntry, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'notified_at' | 'expires_at'>;
-export type UpdateDbWaitlistEntry = Partial<Omit<DbWaitlistEntry, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
-
-export type NewDbTimeSlot = Omit<DbTimeSlot, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
-export type UpdateDbTimeSlot = Partial<Omit<DbTimeSlot, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
-
-export type NewDbAppointmentConflict = Omit<DbAppointmentConflict, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'resolved' | 'resolution_notes'>;
-export type UpdateDbAppointmentConflict = Partial<Omit<DbAppointmentConflict, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
-
-// Calendar view types
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  resource?: any;
-  appointment?: Appointment;
-}
-
-export interface AvailableTimeSlot {
-  time: string;
-  duration: number;
-  available: boolean;
-}
-
-export interface ConflictCheck {
-  hasConflict: boolean;
-  conflictingAppointments: any[];
-  suggestedTimes: string[];
-}
-
-export interface ConflictResolution {
-  conflictId: string;
-  resolution: 'reschedule' | 'cancel' | 'override';
-  newDateTime?: { date: string; time: string };
-  notes?: string;
-}
-
-// Medical record types
-export interface MedicalRecord {
-  id: string;
-  date: string;
-  description: string;
-}
-
-export interface Document {
-  id: string;
-  name: string;
-  type: string;
-  url: string;
-}
