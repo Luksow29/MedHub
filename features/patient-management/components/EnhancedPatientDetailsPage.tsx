@@ -351,12 +351,13 @@ const EnhancedPatientDetailsPage: React.FC = () => {
 
   return (
     <PrintablePageWrapper pageTitle={pageTitle}>
-      <div className="container mx-auto p-4 md:p-6">
+      <div id="printable-medical-records-content" className="container mx-auto p-4 md:p-6">
         <div className="flex justify-between items-center mb-6 print:hidden">
           <h2 className="text-3xl font-semibold text-slate-800">{getBilingualLabel("Patient Profile", "நோயாளர் சுயவிவரம்")}</h2>
           <div className="flex space-x-3">
             <PrintExportButton 
-              pageTitle={pageTitle}
+              targetId="printable-medical-records-content"
+              filename={`Patient_Profile_${patient.name.replace(/\s+/g, '_')}`}
               variant="primary"
               size="sm"
             />

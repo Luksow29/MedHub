@@ -4,9 +4,11 @@ import Button from './Button'; // Assuming Button component path
 interface PrintExportButtonProps {
   targetId: string;
   filename: string;
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const PrintExportButton: React.FC<PrintExportButtonProps> = ({ targetId, filename }) => {
+const PrintExportButton: React.FC<PrintExportButtonProps> = ({ targetId, filename, variant = 'primary', size = 'md' }) => {
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
   const handlePrint = () => {
@@ -45,7 +47,7 @@ const PrintExportButton: React.FC<PrintExportButtonProps> = ({ targetId, filenam
   };
 
   return (
-    <Button onClick={handlePrint} variant="primary">
+    <Button onClick={handlePrint} variant={variant} size={size}>
       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2z"></path>
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9H7a2 2 0 00-2 2v4a2 2 0 002 2h10a2 2 0 002-2v-4a2 2 0 00-2-2zM12 18V21M9 3h6"></path>
