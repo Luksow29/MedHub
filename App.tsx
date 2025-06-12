@@ -8,6 +8,8 @@ import { supabase } from './lib/supabase';
 // Components
 import AuthPage from './components/AuthPage';
 import DashboardPage from './pages/DashboardPage';
+import AppointmentsPage from './pages/AppointmentsPage';
+import PatientsPage from './pages/PatientsPage';
 import PatientDetailsPage from './features/patient-management/components/PatientDetailsPage';
 
 const App: React.FC = () => {
@@ -59,6 +61,14 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<DashboardPage user={session} onLogout={handleLogout} />} />
         <Route path="/dashboard" element={<DashboardPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments/calendar" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments/scheduler" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments/waitlist" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients" element={<PatientsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients/directory" element={<PatientsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients/search" element={<PatientsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients/records" element={<PatientsPage user={session} onLogout={handleLogout} />} />
         <Route path="/patient/:patientId" element={<PatientDetailsPage />} />
       </Routes>
     </Router>
