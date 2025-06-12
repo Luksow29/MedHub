@@ -6,6 +6,7 @@ import PatientSearchComponent from '../../components/PatientSearchComponent';
 import Button from '../../components/shared/Button';
 import PrintExportButton from '../../components/shared/PrintExportButton';
 import CollapsibleSection from '../../components/shared/CollapsibleSection';
+import PrintablePageWrapper from '../../components/shared/PrintablePageWrapper';
 import { Patient } from '../../types';
 import { usePatientData } from '../../features/patient-management/hooks/usePatientData';
 
@@ -54,6 +55,11 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
   const toggleAllergies = useCallback(() => setIsAllergiesExpanded(prev => !prev), []);
   const toggleDocuments = useCallback(() => setIsDocumentsExpanded(prev => !prev), []);
 
+  // Generate page title for the selected patient
+  const pageTitle = selectedPatient 
+    ? `${getBilingualLabel("Medical Records", "மருத்துவ பதிவுகள்")}: ${selectedPatient.name}`
+    : getBilingualLabel("Medical Records", "மருத்துவ பதிவுகள்");
+
   return (
     <MainLayout
       user={user}
@@ -68,7 +74,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
       {/* Page title - hidden when printing */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 print:hidden">
         <h2 className="text-3xl font-semibold text-slate-800">
-          {getBilingualLabel("Medical Records", "மருத்துவ பதிவுகள்")}
+          {pageTitle}
         </h2>
       </div>
 
@@ -82,12 +88,12 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
           />
         </div>
       ) : (
-        <>
+        <PrintablePageWrapper pageTitle={pageTitle} showConfidentialNotice={true}>
           {/* Medical records content */}
           <div id="printable-medical-records-content" className="space-y-6">
-            {/* Patient header */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-              <h3 className="text-xl font-semibold text-sky-700 mb-4">
+            {/* Patient header - always visible */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-6 patient-info">
+              <h3 className="text-xl font-semibold text-sky-700 mb-4 patient-header">
                 {getBilingualLabel("Patient Information", "நோயாளர் தகவல்")}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
@@ -96,6 +102,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                 {selectedPatient.gender && <div><p><strong>{getBilingualLabel("Gender", "பால்")}:</strong> {selectedPatient.gender}</p></div>}
                 <div><p><strong>{getBilingualLabel("Phone", "தொலைபேசி")}:</strong> {selectedPatient.phone}</p></div>
                 {selectedPatient.email && <div><p><strong>{getBilingualLabel("Email", "மின்னஞ்சல்")}:</strong> {selectedPatient.email}</p></div>}
+                {selectedPatient.address && <div><p><strong>{getBilingualLabel("Address", "முகவரி")}:</strong> {selectedPatient.address}</p></div>}
               </div>
             </div>
 
@@ -106,95 +113,140 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
             ) : (
               <>
                 {/* Medical History Section */}
-                <CollapsibleSection
-                  title={getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}
-                  isExpanded={isMedicalHistoryExpanded}
-                  onToggle={toggleMedicalHistory}
-                >
-                  {medicalHistory && medicalHistory.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {medicalHistory.map((record) => (
-                        <li key={record.id}>
-                          <span className="font-semibold">{record.diagnosisDate}:</span> {record.conditionName}
-                          {record.notes && <p className="text-sm text-slate-600 ml-4">{record.notes}</p>}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-slate-500">{getBilingualLabel("No medical history recorded.", "மருத்துவ வரலாறு பதிவு செய்யப்படவில்லை.")}</p>
-                  )}
-                </CollapsibleSection>
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6 medical-section">
+                  <h3 className="text-xl font-semibold text-sky-700 mb-4">
+                    {getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}
+                  </h3>
+                  <div className="print:block">
+                    {medicalHistory && medicalHistory.length > 0 ? (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Date", "தேதி")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Condition", "நிலை")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {medicalHistory.map((record) => (
+                            <tr key={record.id} className="border-b border-slate-200">
+                              <td className="border border-slate-300 px-4 py-2">{record.diagnosisDate}</td>
+                              <td className="border border-slate-300 px-4 py-2 font-medium">{record.conditionName}</td>
+                              <td className="border border-slate-300 px-4 py-2">{record.notes || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-slate-500">{getBilingualLabel("No medical history recorded.", "மருத்துவ வரலாறு பதிவு செய்யப்படவில்லை.")}</p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Medications Section */}
-                <CollapsibleSection
-                  title={getBilingualLabel("Medications", "மருந்துகள்")}
-                  isExpanded={isMedicationsExpanded}
-                  onToggle={toggleMedications}
-                >
-                  {medications && medications.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {medications.map((med) => (
-                        <li key={med.id}>
-                          <span className="font-semibold">{med.medicationName}</span>
-                          {med.dosage && <span> - {med.dosage}</span>}
-                          {med.frequency && <span> ({med.frequency})</span>}
-                          {med.startDate && <p className="text-sm text-slate-600 ml-4">{getBilingualLabel("Started", "தொடங்கியது")}: {med.startDate}</p>}
-                          {med.notes && <p className="text-sm text-slate-600 ml-4">{med.notes}</p>}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-slate-500">{getBilingualLabel("No medications recorded.", "மருந்துகள் பதிவு செய்யப்படவில்லை.")}</p>
-                  )}
-                </CollapsibleSection>
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6 medical-section">
+                  <h3 className="text-xl font-semibold text-sky-700 mb-4">
+                    {getBilingualLabel("Medications", "மருந்துகள்")}
+                  </h3>
+                  <div className="print:block">
+                    {medications && medications.length > 0 ? (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Medication", "மருந்து")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Dosage", "அளவு")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Frequency", "அடுக்கு")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Start Date", "தொடக்க தேதி")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {medications.map((med) => (
+                            <tr key={med.id} className="border-b border-slate-200">
+                              <td className="border border-slate-300 px-4 py-2 font-medium">{med.medicationName}</td>
+                              <td className="border border-slate-300 px-4 py-2">{med.dosage || '-'}</td>
+                              <td className="border border-slate-300 px-4 py-2">{med.frequency || '-'}</td>
+                              <td className="border border-slate-300 px-4 py-2">{med.startDate || '-'}</td>
+                              <td className="border border-slate-300 px-4 py-2">{med.notes || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-slate-500">{getBilingualLabel("No medications recorded.", "மருந்துகள் பதிவு செய்யப்படவில்லை.")}</p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Allergies Section */}
-                <CollapsibleSection
-                  title={getBilingualLabel("Allergies", "ஒவ்வாமைகள்")}
-                  isExpanded={isAllergiesExpanded}
-                  onToggle={toggleAllergies}
-                >
-                  {allergies && allergies.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {allergies.map((allergy) => (
-                        <li key={allergy.id}>
-                          <span className="font-semibold">{allergy.allergenName}</span>
-                          {allergy.reaction && <span> - {allergy.reaction}</span>}
-                          {allergy.severity && <span> ({allergy.severity})</span>}
-                          {allergy.notes && <p className="text-sm text-slate-600 ml-4">{allergy.notes}</p>}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-slate-500">{getBilingualLabel("No allergies recorded.", "ஒவ்வாமைகள் பதிவு செய்யப்படவில்லை.")}</p>
-                  )}
-                </CollapsibleSection>
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6 medical-section">
+                  <h3 className="text-xl font-semibold text-sky-700 mb-4">
+                    {getBilingualLabel("Allergies", "ஒவ்வாமைகள்")}
+                  </h3>
+                  <div className="print:block">
+                    {allergies && allergies.length > 0 ? (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Allergen", "ஒவ்வாமை")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Reaction", "எதிர்வினை")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Severity", "தீவிரம்")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allergies.map((allergy) => (
+                            <tr key={allergy.id} className="border-b border-slate-200">
+                              <td className="border border-slate-300 px-4 py-2 font-medium">{allergy.allergenName}</td>
+                              <td className="border border-slate-300 px-4 py-2">{allergy.reaction || '-'}</td>
+                              <td className="border border-slate-300 px-4 py-2">{allergy.severity || '-'}</td>
+                              <td className="border border-slate-300 px-4 py-2">{allergy.notes || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-slate-500">{getBilingualLabel("No allergies recorded.", "ஒவ்வாமைகள் பதிவு செய்யப்படவில்லை.")}</p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Documents Section */}
-                <CollapsibleSection
-                  title={getBilingualLabel("Documents", "ஆவணங்கள்")}
-                  isExpanded={isDocumentsExpanded}
-                  onToggle={toggleDocuments}
-                >
-                  {documents && documents.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {documents.map((doc) => (
-                        <li key={doc.id}>
-                          <span className="font-semibold">{doc.documentType}</span> - {doc.fileName}
-                          <div className="ml-4">
-                            <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline print:text-black print:no-underline">
-                              {getBilingualLabel("View Document", "ஆவணத்தைப் பார்க்கவும்")}
-                            </a>
-                            <p className="text-xs text-slate-500">{getBilingualLabel("Uploaded", "பதிவேற்றப்பட்டது")}: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
-                            {doc.notes && <p className="text-sm text-slate-600">{doc.notes}</p>}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-slate-500">{getBilingualLabel("No documents attached.", "ஆவணங்கள் இணைக்கப்படவில்லை.")}</p>
-                  )}
-                </CollapsibleSection>
+                <div className="bg-white p-6 rounded-lg shadow-md mb-6 medical-section">
+                  <h3 className="text-xl font-semibold text-sky-700 mb-4">
+                    {getBilingualLabel("Documents", "ஆவணங்கள்")}
+                  </h3>
+                  <div className="print:block">
+                    {documents && documents.length > 0 ? (
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Type", "வகை")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("File Name", "கோப்பு பெயர்")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Upload Date", "பதிவேற்றிய தேதி")}</th>
+                            <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {documents.map((doc) => (
+                            <tr key={doc.id} className="border-b border-slate-200">
+                              <td className="border border-slate-300 px-4 py-2 font-medium">{doc.documentType}</td>
+                              <td className="border border-slate-300 px-4 py-2">
+                                <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline print:text-black">
+                                  {doc.fileName}
+                                </a>
+                              </td>
+                              <td className="border border-slate-300 px-4 py-2">{new Date(doc.uploadedAt).toLocaleDateString()}</td>
+                              <td className="border border-slate-300 px-4 py-2">{doc.notes || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-slate-500">{getBilingualLabel("No documents attached.", "ஆவணங்கள் இணைக்கப்படவில்லை.")}</p>
+                    )}
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -211,7 +263,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
               size="md"
             />
           </div>
-        </>
+        </PrintablePageWrapper>
       )}
     </MainLayout>
   );

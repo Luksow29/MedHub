@@ -32,15 +32,15 @@ const PrintablePageWrapper: React.FC<PrintablePageWrapperProps> = ({
   return (
     <div className={`printable-page ${className}`}>
       {/* Print-only header */}
-      <div className="print-header print-only">
-        <h1>MedRemind Hub</h1>
-        <h2>{pageTitle}</h2>
+      <div className="print-only letterhead">
+        <h1 className="letterhead-title">MedRemind Hub</h1>
+        <h2 className="letterhead-subtitle">{pageTitle}</h2>
         <p>{getBilingualLabel("Generated on", "உருவாக்கப்பட்ட தேதி")}: {currentDate}</p>
       </div>
 
       {/* Confidentiality notice for medical records */}
       {showConfidentialNotice && (
-        <div className="confidential-notice print-only">
+        <div className="print-only confidentiality-notice">
           <p>
             <strong>
               {getBilingualLabel(
@@ -64,13 +64,14 @@ const PrintablePageWrapper: React.FC<PrintablePageWrapperProps> = ({
       </div>
 
       {/* Print-only footer */}
-      <div className="print-footer print-only">
+      <div className="print-only print-metadata">
         <p>
           {getBilingualLabel("MedRemind Hub - Patient Management System", "MedRemind Hub - நோயாளர் மேலாண்மை அமைப்பு")}
         </p>
         <p>
           {getBilingualLabel("Printed on", "அச்சிடப்பட்ட தேதி")}: {currentDate}
         </p>
+        <p className="page-number"></p>
       </div>
     </div>
   );

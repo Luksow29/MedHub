@@ -1,5 +1,3 @@
-// features/patient-management/components/EnhancedPatientDetailsPage.tsx - Enhanced patient details with complete RUD operations
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
@@ -357,14 +355,14 @@ const EnhancedPatientDetailsPage: React.FC = () => {
           <div className="flex space-x-3">
             <PrintExportButton 
               targetId="printable-medical-records-content"
-              filename={`Patient_Profile_${patient.name.replace(/\s+/g, '_')}`}
+              filename={`Patient_Profile_${patient.name.replace(/\s+/g, '_')}.pdf`}
               variant="primary"
               size="sm"
             />
-            <Button onClick={() => navigate('/dashboard')} variant="secondary">
+            <Button onClick={() => navigate('/dashboard')} variant="secondary" className="print:hidden">
               {getBilingualLabel("Back to Dashboard", "டாஷ்போர்டுக்குத் திரும்பு")}
             </Button>
-            <Button onClick={() => setIsDeleteConfirmationOpen(true)} variant="danger">
+            <Button onClick={() => setIsDeleteConfirmationOpen(true)} variant="danger" className="print:hidden">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -412,37 +410,47 @@ const EnhancedPatientDetailsPage: React.FC = () => {
             <p className="text-slate-600">{getBilingualLabel("No medical history recorded.", "மருத்துவ வரலாறு எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
           ) : (
             <div className="space-y-4">
-              {medicalHistory.map((entry) => (
-                <div key={entry.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p><strong>{getBilingualLabel("Condition", "நிலை")}:</strong> {entry.conditionName}</p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("Diagnosed on", "நோயறிதல் தேதி")}: {entry.diagnosisDate}</p>
-                      {entry.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {entry.notes}</p>}
-                    </div>
-                    <div className="flex space-x-2 ml-4 print:hidden">
-                      <Button
-                        onClick={() => setEditingMedicalHistory(entry)}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteMedicalHistory(entry.id)}
-                        variant="danger"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Date", "தேதி")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Condition", "நிலை")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50 print:hidden">{getBilingualLabel("Actions", "செயல்கள்")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {medicalHistory.map((entry) => (
+                    <tr key={entry.id} className="border-b border-slate-200">
+                      <td className="border border-slate-300 px-4 py-2">{entry.diagnosisDate}</td>
+                      <td className="border border-slate-300 px-4 py-2 font-medium">{entry.conditionName}</td>
+                      <td className="border border-slate-300 px-4 py-2">{entry.notes || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2 print:hidden">
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => setEditingMedicalHistory(entry)}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteMedicalHistory(entry.id)}
+                            variant="danger"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -462,38 +470,51 @@ const EnhancedPatientDetailsPage: React.FC = () => {
             <p className="text-slate-600">{getBilingualLabel("No medications recorded.", "மருந்துகள் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
           ) : (
             <div className="space-y-4">
-              {medications.map((med) => (
-                <div key={med.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p><strong>{getBilingualLabel("Name", "பெயர்")}:</strong> {med.medicationName}</p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("Dosage", "மருந்தளவு")}: {med.dosage}, {getBilingualLabel("Frequency", "அளவு")}: {med.frequency}</p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("Start Date", "தொடங்கிய தேதி")}: {med.startDate} {med.endDate && `- ${med.endDate}`}</p>
-                      {med.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {med.notes}</p>}
-                    </div>
-                    <div className="flex space-x-2 ml-4 print:hidden">
-                      <Button
-                        onClick={() => setEditingMedication(med)}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteMedication(med.id)}
-                        variant="danger"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Medication", "மருந்து")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Dosage", "அளவு")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Frequency", "அடுக்கு")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Start Date", "தொடக்க தேதி")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50 print:hidden">{getBilingualLabel("Actions", "செயல்கள்")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {medications.map((med) => (
+                    <tr key={med.id} className="border-b border-slate-200">
+                      <td className="border border-slate-300 px-4 py-2 font-medium">{med.medicationName}</td>
+                      <td className="border border-slate-300 px-4 py-2">{med.dosage || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{med.frequency || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{med.startDate || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{med.notes || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2 print:hidden">
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => setEditingMedication(med)}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteMedication(med.id)}
+                            variant="danger"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -513,37 +534,49 @@ const EnhancedPatientDetailsPage: React.FC = () => {
             <p className="text-slate-600">{getBilingualLabel("No allergies recorded.", "ஒவ்வாமைகள் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
           ) : (
             <div className="space-y-4">
-              {allergies.map((allergy) => (
-                <div key={allergy.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p><strong>{getBilingualLabel("Allergen", "ஒவ்வாமை")}:</strong> {allergy.allergenName}</p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("Reaction", "எதிர்வினை")}: {allergy.reaction}, {getBilingualLabel("Severity", "தீவிரம்")}: {allergy.severity}</p>
-                      {allergy.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {allergy.notes}</p>}
-                    </div>
-                    <div className="flex space-x-2 ml-4 print:hidden">
-                      <Button
-                        onClick={() => setEditingAllergy(allergy)}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteAllergy(allergy.id)}
-                        variant="danger"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Allergen", "ஒவ்வாமை")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Reaction", "எதிர்வினை")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Severity", "தீவிரம்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50 print:hidden">{getBilingualLabel("Actions", "செயல்கள்")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allergies.map((allergy) => (
+                    <tr key={allergy.id} className="border-b border-slate-200">
+                      <td className="border border-slate-300 px-4 py-2 font-medium">{allergy.allergenName}</td>
+                      <td className="border border-slate-300 px-4 py-2">{allergy.reaction || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{allergy.severity || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{allergy.notes || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2 print:hidden">
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => setEditingAllergy(allergy)}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteAllergy(allergy.id)}
+                            variant="danger"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -563,38 +596,51 @@ const EnhancedPatientDetailsPage: React.FC = () => {
             <p className="text-slate-600">{getBilingualLabel("No insurance information recorded.", "காப்பீட்டுத் தகவல் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
           ) : (
             <div className="space-y-4">
-              {insuranceBilling.map((ins) => (
-                <div key={ins.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p><strong>{getBilingualLabel("Provider", "வழங்குநர்")}:</strong> {ins.insuranceProvider}</p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("Policy No.", "பாலிசி எண்")}: {ins.policyNumber} {ins.isPrimary ? `(${getBilingualLabel("Primary", "முதன்மை")})` : ''}</p>
-                      {ins.groupNumber && <p className="text-sm text-slate-600">{getBilingualLabel("Group No.", "குழு எண்")}: {ins.groupNumber}</p>}
-                      {ins.billingNotes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {ins.billingNotes}</p>}
-                    </div>
-                    <div className="flex space-x-2 ml-4 print:hidden">
-                      <Button
-                        onClick={() => setEditingInsurance(ins)}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteInsurance(ins.id)}
-                        variant="danger"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Provider", "வழங்குநர்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Policy Number", "பாலிசி எண்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Group Number", "குழு எண்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Primary", "முதன்மை")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50 print:hidden">{getBilingualLabel("Actions", "செயல்கள்")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {insuranceBilling.map((ins) => (
+                    <tr key={ins.id} className="border-b border-slate-200">
+                      <td className="border border-slate-300 px-4 py-2 font-medium">{ins.insuranceProvider}</td>
+                      <td className="border border-slate-300 px-4 py-2">{ins.policyNumber}</td>
+                      <td className="border border-slate-300 px-4 py-2">{ins.groupNumber || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{ins.isPrimary ? '✓' : '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2">{ins.billingNotes || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2 print:hidden">
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => setEditingInsurance(ins)}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteInsurance(ins.id)}
+                            variant="danger"
+                            size="sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -614,36 +660,65 @@ const EnhancedPatientDetailsPage: React.FC = () => {
             <p className="text-slate-600">{getBilingualLabel("No documents uploaded.", "ஆவணங்கள் எதுவும் பதிவேற்றப்படவில்லை.")}</p>
           ) : (
             <div className="space-y-4">
-              {documents.map((doc) => (
-                <div key={doc.id} className="border-b border-slate-200 pb-4 last:border-b-0 document-item">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p><strong>{getBilingualLabel("Type", "வகை")}:</strong> {doc.documentType}</p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("File", "கோப்பு")}: <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">{doc.fileName}</a></p>
-                      <p className="text-sm text-slate-600">{getBilingualLabel("Uploaded", "பதிவேற்றப்பட்டது")}: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
-                      {doc.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {doc.notes}</p>}
-                    </div>
-                    <div className="flex space-x-2 ml-4 print:hidden">
-                      <Button
-                        onClick={() => handleDeleteDocument(doc.id)}
-                        variant="danger"
-                        size="sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Type", "வகை")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("File Name", "கோப்பு பெயர்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Upload Date", "பதிவேற்றிய தேதி")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50">{getBilingualLabel("Notes", "குறிப்புகள்")}</th>
+                    <th className="border border-slate-300 px-4 py-2 text-left bg-slate-50 print:hidden">{getBilingualLabel("Actions", "செயல்கள்")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documents.map((doc) => (
+                    <tr key={doc.id} className="border-b border-slate-200 document-item">
+                      <td className="border border-slate-300 px-4 py-2 font-medium">{doc.documentType}</td>
+                      <td className="border border-slate-300 px-4 py-2">
+                        <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline print:text-black">
+                          {doc.fileName}
+                        </a>
+                      </td>
+                      <td className="border border-slate-300 px-4 py-2">{new Date(doc.uploadedAt).toLocaleDateString()}</td>
+                      <td className="border border-slate-300 px-4 py-2">{doc.notes || '-'}</td>
+                      <td className="border border-slate-300 px-4 py-2 print:hidden">
+                        <Button
+                          onClick={() => handleDeleteDocument(doc.id)}
+                          variant="danger"
+                          size="sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
 
         {/* Audit Trail Component */}
-        <div className="page-break-before">
+        <div className="page-break-before print:hidden">
           <PatientAuditTrail patientId={patientId!} />
+        </div>
+
+        {/* Print-only confidentiality notice */}
+        <div className="print-only confidentiality-notice">
+          <p className="font-bold">
+            {getBilingualLabel(
+              "CONFIDENTIAL MEDICAL RECORD - HIPAA PROTECTED",
+              "ரகசிய மருத்துவ பதிவு - HIPAA பாதுகாக்கப்பட்டது"
+            )}
+          </p>
+          <p>
+            {getBilingualLabel(
+              "This document contains confidential patient information protected by federal and state privacy laws.",
+              "இந்த ஆவணத்தில் கூட்டாட்சி மற்றும் மாநில தனியுரிமை சட்டங்களால் பாதுகாக்கப்பட்ட ரகசிய நோயாளர் தகவல்கள் உள்ளன."
+            )}
+          </p>
         </div>
 
         {/* Modals */}
