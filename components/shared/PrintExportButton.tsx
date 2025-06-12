@@ -37,9 +37,8 @@ const PrintExportButton: React.FC<PrintExportButtonProps> = ({ targetId, filenam
         printWindow.print();
         printWindow.close();
       } else {
-        // Fallback for pop-up blockers
-        console.error('Pop-up blocked. Please allow pop-ups for this site to print.');
-        // You might want to show a custom message box here instead of alert
+        // Show alert to inform user about pop-up blocking
+        alert('Pop-up blocked. Please allow pop-ups for this site to print.');
       }
     } else {
       console.error(`Content with ID "${targetId}" not found for printing.`);
