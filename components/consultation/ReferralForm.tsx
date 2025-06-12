@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  Referral, 
-  NewDbReferral, 
+import {
+  Referral,
+  NewDbReferral,
   UpdateDbReferral,
-  ReferralUrgency,
-  ReferralStatus
-} from '../../types';
+} from '../../types'; // மற்ற வகைகள் index.ts இலிருந்து
+import { ReferralUrgency, ReferralStatus } from '../../types/consultation'; // ReferralUrgency மற்றும் ReferralStatus ஐ நேரடியாக consultation.ts இலிருந்து இறக்குமதி செய்கிறோம்
 import Button from '../shared/Button';
 
 interface ReferralFormProps {
@@ -71,7 +70,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const referralData: NewDbReferral | UpdateDbReferral = {
         consultation_id: consultationId,
@@ -84,7 +83,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
         status,
         notes: notes || null
       };
-      
+
       await onSubmit(referralData);
     } catch (err: any) {
       console.error('Error submitting referral:', err);
@@ -101,7 +100,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           <span className="block sm:inline">{error}</span>
         </div>
       )}
-      
+
       {/* Referral Type */}
       <div>
         <label htmlFor="referralType" className="block text-sm font-medium text-slate-700">
@@ -119,7 +118,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           ))}
         </select>
       </div>
-      
+
       {/* Specialist */}
       <div>
         <label htmlFor="specialist" className="block text-sm font-medium text-slate-700">
@@ -137,7 +136,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           ))}
         </select>
       </div>
-      
+
       {/* Facility */}
       <div>
         <label htmlFor="facility" className="block text-sm font-medium text-slate-700">
@@ -151,7 +150,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
         />
       </div>
-      
+
       {/* Reason */}
       <div>
         <label htmlFor="reason" className="block text-sm font-medium text-slate-700">
@@ -166,7 +165,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
         />
       </div>
-      
+
       {/* Urgency */}
       <div>
         <label htmlFor="urgency" className="block text-sm font-medium text-slate-700">
@@ -184,7 +183,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           <option value={ReferralUrgency.EMERGENCY}>{getBilingualLabel("Emergency", "அவசர நிலை")}</option>
         </select>
       </div>
-      
+
       {/* Status */}
       {referral && (
         <div>
@@ -205,7 +204,7 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           </select>
         </div>
       )}
-      
+
       {/* Notes */}
       <div>
         <label htmlFor="notes" className="block text-sm font-medium text-slate-700">
@@ -219,15 +218,15 @@ const ReferralForm: React.FC<ReferralFormProps> = ({
           className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
         />
       </div>
-      
+
       {/* Form Actions */}
       <div className="flex justify-end space-x-3 pt-4">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isLoading}>
           {getBilingualLabel("Cancel", "ரத்துசெய்")}
         </Button>
         <Button type="submit" variant="primary" isLoading={isLoading}>
-          {referral?.id ? 
-            getBilingualLabel("Update Referral", "பரிந்துரையைப் புதுப்பிக்கவும்") : 
+          {referral?.id ?
+            getBilingualLabel("Update Referral", "பரிந்துரையைப் புதுப்பிக்கவும்") :
             getBilingualLabel("Add Referral", "பரிந்துரையைச் சேர்")
           }
         </Button>
