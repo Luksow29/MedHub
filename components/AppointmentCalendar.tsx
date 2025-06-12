@@ -1,505 +1,558 @@
-// components/AppointmentCalendar.tsx - Calendar interface for appointment scheduling
+// components/AppointmentCalendar.tsx - Calendar view for appointments with drag-and-drop
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { CalendarEvent, Appointment, Patient, AppointmentStatus } from '../types';
-import { getCalendarAppointments } from '../api/appointments';
-import { supabase } from '../lib/supabase';
+import React, { useState, useEffect } from 'react';
+import { Patient, Appointment, CalendarEvent } from '../types';
 import Button from './shared/Button';
+import Modal from './shared/Modal';
+import { formatDateToInput } from '../utils/dateHelpers';
+
+// API functions
+import * as AppointmentAPI from '../api/appointments';
+import * as TimeSlotAPI from '../api/timeSlots';
 
 interface AppointmentCalendarProps {
-  onAppointmentSelect?: (appointment: Appointment) => void;
-  onTimeSlotSelect?: (date: string, time: string) => void;
+  appointments: Appointment[];
   patients: Patient[];
-  selectedDate?: string;
+  userId: string;
+  onAppointmentUpdate?: () => void;
 }
 
-type CalendarView = 'month' | 'week' | 'day';
+interface CalendarDay {
+  date: Date;
+  isCurrentMonth: boolean;
+  appointments: Appointment[];
+}
 
 const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
-  onAppointmentSelect,
-  onTimeSlotSelect,
+  appointments,
   patients,
-  selectedDate
+  userId,
+  onAppointmentUpdate
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date(selectedDate || new Date()));
-  const [view, setView] = useState<CalendarView>('week');
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
-  // Generate time slots for day/week view
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 8; hour < 18; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(time);
-      }
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const generateCalendarDays = (): CalendarDay[] => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days: CalendarDay[] = [];
+    const currentDateObj = new Date(startDate);
+    
+    for (let i = 0; i < 42; i++) { // 6 weeks * 7 days
+      const dateStr = formatDateToInput(currentDateObj);
+      const dayAppointments = appointments.filter(apt => apt.date === dateStr);
+      
+      days.push({
+        date: new Date(currentDateObj),
+        isCurrentMonth: currentDateObj.getMonth() === month,
+        appointments: dayAppointments
+      });
+      
+      currentDateObj.setDate(currentDateObj.getDate() + 1);
     }
-    return slots;
+    
+    return days;
   };
 
-  // Get date range for current view
-  const getDateRange = useCallback(() => {
-    const start = new Date(currentDate);
-    const end = new Date(currentDate);
-
-    switch (view) {
-      case 'day':
-        break;
-      case 'week':
-        const dayOfWeek = start.getDay();
-        start.setDate(start.getDate() - dayOfWeek);
-        end.setDate(start.getDate() + 6);
-        break;
-      case 'month':
-        start.setDate(1);
-        end.setMonth(end.getMonth() + 1);
-        end.setDate(0);
-        break;
+  const getWeekDays = (): CalendarDay[] => {
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    
+    const days: CalendarDay[] = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      const dateStr = formatDateToInput(date);
+      const dayAppointments = appointments.filter(apt => apt.date === dateStr);
+      
+      days.push({
+        date,
+        isCurrentMonth: true,
+        appointments: dayAppointments
+      });
     }
+    
+    return days;
+  };
 
-    return {
-      start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0]
-    };
-  }, [currentDate, view]);
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+  };
 
-  // Fetch appointments for current view
-  const fetchAppointments = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 7);
+    } else {
+      newDate.setDate(newDate.getDate() + 7);
+    }
+    setCurrentDate(newDate);
+  };
 
+  const navigateDay = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const handleDateClick = async (date: Date) => {
+    setSelectedDate(date);
+    const dateStr = formatDateToInput(date);
+    
     try {
-      const currentUser = await supabase.auth.getUser();
-      if (!currentUser.data.user) throw new Error("User not authenticated");
-
-      const { start, end } = getDateRange();
-      const { data, error } = await getCalendarAppointments(
-        currentUser.data.user.id,
-        start,
-        end
-      );
-
+      setIsLoading(true);
+      const { data, error } = await TimeSlotAPI.getAvailableTimeSlotsForDate(userId, dateStr, 30);
       if (error) throw error;
-      setEvents(data || []);
+      setAvailableSlots(data || []);
     } catch (err: any) {
-      console.error('Error fetching appointments:', err);
+      console.error('Fetch available slots error:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [getDateRange]);
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
-
-  // Navigation functions
-  const navigatePrevious = () => {
-    const newDate = new Date(currentDate);
-    switch (view) {
-      case 'day':
-        newDate.setDate(newDate.getDate() - 1);
-        break;
-      case 'week':
-        newDate.setDate(newDate.getDate() - 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() - 1);
-        break;
-    }
-    setCurrentDate(newDate);
   };
 
-  const navigateNext = () => {
-    const newDate = new Date(currentDate);
-    switch (view) {
-      case 'day':
-        newDate.setDate(newDate.getDate() + 1);
-        break;
-      case 'week':
-        newDate.setDate(newDate.getDate() + 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() + 1);
-        break;
-    }
-    setCurrentDate(newDate);
+  const handleAppointmentClick = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsRescheduleModalOpen(true);
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
+  const handleReschedule = async (newDate: string, newTime: string) => {
+    if (!selectedAppointment) return;
 
-  // Get events for a specific date and time
-  const getEventsForSlot = (date: string, time: string) => {
-    return events.filter(event => {
-      const eventDate = event.start.toISOString().split('T')[0];
-      const eventTime = event.start.toTimeString().slice(0, 5);
-      return eventDate === date && eventTime === time;
-    });
-  };
+    try {
+      setIsLoading(true);
+      
+      // Check for conflicts
+      const { data: conflicts, error: conflictError } = await AppointmentAPI.checkAppointmentConflicts(
+        newDate,
+        newTime,
+        selectedAppointment.duration,
+        userId,
+        selectedAppointment.id
+      );
 
-  // Check if a time slot is available
-  const isTimeSlotAvailable = (date: string, time: string) => {
-    const slotEvents = getEventsForSlot(date, time);
-    return slotEvents.length === 0;
-  };
+      if (conflictError) throw conflictError;
 
-  // Handle time slot click
-  const handleTimeSlotClick = (date: string, time: string) => {
-    if (isTimeSlotAvailable(date, time) && onTimeSlotSelect) {
-      onTimeSlotSelect(date, time);
+      if (conflicts && conflicts.length > 0) {
+        const confirmOverride = window.confirm(
+          getBilingualLabel(
+            'There are conflicts with this time slot. Do you want to proceed anyway?',
+            'இந்த நேர இடைவெளியில் முரண்பாடுகள் உள்ளன. எப்படியும் தொடர விரும்புகிறீர்களா?'
+          )
+        );
+        if (!confirmOverride) return;
+      }
+
+      // Update appointment
+      const { error: updateError } = await AppointmentAPI.updateAppointment(
+        selectedAppointment.id,
+        {
+          date: newDate,
+          time: newTime,
+          status: 'rescheduled'
+        },
+        userId
+      );
+
+      if (updateError) throw updateError;
+
+      setIsRescheduleModalOpen(false);
+      setSelectedAppointment(null);
+      if (onAppointmentUpdate) onAppointmentUpdate();
+      
+      alert(getBilingualLabel('Appointment rescheduled successfully!', 'சந்திப்பு வெற்றிகரமாக மாற்றப்பட்டது!'));
+    } catch (err: any) {
+      console.error('Reschedule appointment error:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Handle appointment click
-  const handleAppointmentClick = (event: CalendarEvent) => {
-    if (onAppointmentSelect && event.resource) {
-      onAppointmentSelect(event.resource);
-    }
+  const getAppointmentStatusColor = (status: string) => {
+    const statusColors = {
+      'scheduled': 'bg-blue-100 text-blue-800 border-blue-200',
+      'confirmed': 'bg-green-100 text-green-800 border-green-200',
+      'cancelled': 'bg-red-100 text-red-800 border-red-200',
+      'completed': 'bg-gray-100 text-gray-800 border-gray-200',
+      'no_show': 'bg-orange-100 text-orange-800 border-orange-200',
+      'rescheduled': 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    };
+    return statusColors[status as keyof typeof statusColors] || statusColors.scheduled;
   };
 
-  // Get status color class
-  const getStatusColorClass = (status: AppointmentStatus) => {
-    switch (status) {
-      case 'scheduled':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'completed':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'no_show':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'rescheduled':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default:
-        return 'bg-slate-100 text-slate-800 border-slate-200';
-    }
-  };
-
-  // Format date for display
-  const formatDateForDisplay = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  // Render day view
-  const renderDayView = () => {
-    const dateStr = currentDate.toISOString().split('T')[0];
-    const timeSlots = generateTimeSlots();
-
+  const renderMonthView = () => {
+    const days = generateCalendarDays();
+    
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900">
-            {formatDateForDisplay(currentDate)}
+      <div className="grid grid-cols-7 gap-1">
+        {dayNames.map(day => (
+          <div key={day} className="p-2 text-center font-medium text-slate-600 bg-slate-50">
+            {day}
+          </div>
+        ))}
+        {days.map((day, index) => (
+          <div
+            key={index}
+            className={`min-h-24 p-1 border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors ${
+              !day.isCurrentMonth ? 'bg-slate-100 text-slate-400' : 'bg-white'
+            } ${
+              day.date.toDateString() === new Date().toDateString() ? 'bg-sky-50 border-sky-200' : ''
+            }`}
+            onClick={() => handleDateClick(day.date)}
+          >
+            <div className="text-sm font-medium mb-1">
+              {day.date.getDate()}
+            </div>
+            <div className="space-y-1">
+              {day.appointments.slice(0, 2).map(appointment => (
+                <div
+                  key={appointment.id}
+                  className={`text-xs p-1 rounded border cursor-pointer hover:shadow-sm transition-shadow ${getAppointmentStatusColor(appointment.status)}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAppointmentClick(appointment);
+                  }}
+                >
+                  <div className="font-medium truncate">{appointment.time}</div>
+                  <div className="truncate">{appointment.patientName}</div>
+                </div>
+              ))}
+              {day.appointments.length > 2 && (
+                <div className="text-xs text-slate-500 text-center">
+                  +{day.appointments.length - 2} more
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderWeekView = () => {
+    const days = getWeekDays();
+    
+    return (
+      <div className="grid grid-cols-7 gap-2">
+        {days.map((day, index) => (
+          <div key={index} className="border border-slate-200 rounded-lg overflow-hidden">
+            <div className={`p-3 text-center font-medium ${
+              day.date.toDateString() === new Date().toDateString() 
+                ? 'bg-sky-100 text-sky-800' 
+                : 'bg-slate-50 text-slate-600'
+            }`}>
+              <div className="text-sm">{dayNames[day.date.getDay()]}</div>
+              <div className="text-lg">{day.date.getDate()}</div>
+            </div>
+            <div className="p-2 space-y-2 min-h-32">
+              {day.appointments.map(appointment => (
+                <div
+                  key={appointment.id}
+                  className={`text-xs p-2 rounded border cursor-pointer hover:shadow-sm transition-shadow ${getAppointmentStatusColor(appointment.status)}`}
+                  onClick={() => handleAppointmentClick(appointment)}
+                >
+                  <div className="font-medium">{appointment.time}</div>
+                  <div className="truncate">{appointment.patientName}</div>
+                  <div className="truncate text-slate-600">{appointment.reason}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderDayView = () => {
+    const dateStr = formatDateToInput(currentDate);
+    const dayAppointments = appointments.filter(apt => apt.date === dateStr);
+    
+    // Generate time slots from 8 AM to 6 PM
+    const timeSlots = [];
+    for (let hour = 8; hour < 18; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const appointment = dayAppointments.find(apt => apt.time === time);
+        timeSlots.push({ time, appointment });
+      }
+    }
+    
+    return (
+      <div className="space-y-1">
+        <div className="text-center py-4 bg-slate-50 rounded-lg">
+          <h3 className="text-lg font-medium text-slate-900">
+            {currentDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
           </h3>
         </div>
-        <div className="divide-y divide-slate-200">
-          {timeSlots.map((time) => {
-            const slotEvents = getEventsForSlot(dateStr, time);
-            const isAvailable = slotEvents.length === 0;
-
-            return (
-              <div
-                key={time}
-                className={`p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer ${
-                  !isAvailable ? 'bg-slate-50' : ''
-                }`}
-                onClick={() => handleTimeSlotClick(dateStr, time)}
-              >
-                <div className="text-sm font-medium text-slate-600">{time}</div>
-                <div className="flex-1 ml-4">
-                  {slotEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className={`inline-block px-2 py-1 rounded text-xs border mr-2 cursor-pointer ${getStatusColorClass(
-                        event.resource?.status || 'scheduled'
-                      )}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAppointmentClick(event);
-                      }}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
-                  {isAvailable && (
-                    <span className="text-xs text-slate-400">
-                      {getBilingualLabel("Available", "கிடைக்கும்")}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  // Render week view
-  const renderWeekView = () => {
-    const startOfWeek = new Date(currentDate);
-    const dayOfWeek = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
-
-    const weekDays = [];
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(startOfWeek);
-      day.setDate(day.getDate() + i);
-      weekDays.push(day);
-    }
-
-    const timeSlots = generateTimeSlots();
-
-    return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {/* Week header */}
-        <div className="grid grid-cols-8 border-b border-slate-200">
-          <div className="p-3 text-sm font-medium text-slate-600">
-            {getBilingualLabel("Time", "நேரம்")}
-          </div>
-          {weekDays.map((day) => (
-            <div key={day.toISOString()} className="p-3 text-center border-l border-slate-200">
-              <div className="text-sm font-medium text-slate-900">
-                {day.toLocaleDateString('en-US', { weekday: 'short' })}
-              </div>
-              <div className="text-xs text-slate-600">
-                {day.getDate()}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Time slots */}
-        <div className="max-h-96 overflow-y-auto">
-          {timeSlots.map((time) => (
-            <div key={time} className="grid grid-cols-8 border-b border-slate-100">
-              <div className="p-2 text-xs text-slate-600 border-r border-slate-200">
+        <div className="grid grid-cols-1 gap-1">
+          {timeSlots.map(({ time, appointment }) => (
+            <div
+              key={time}
+              className={`flex items-center p-3 border border-slate-200 rounded ${
+                appointment ? 'bg-white' : 'bg-slate-50'
+              }`}
+            >
+              <div className="w-20 text-sm font-medium text-slate-600">
                 {time}
               </div>
-              {weekDays.map((day) => {
-                const dateStr = day.toISOString().split('T')[0];
-                const slotEvents = getEventsForSlot(dateStr, time);
-                const isAvailable = slotEvents.length === 0;
-
-                return (
+              <div className="flex-1 ml-4">
+                {appointment ? (
                   <div
-                    key={`${dateStr}-${time}`}
-                    className={`p-1 border-l border-slate-100 min-h-[2rem] cursor-pointer hover:bg-slate-50 ${
-                      !isAvailable ? 'bg-slate-50' : ''
-                    }`}
-                    onClick={() => handleTimeSlotClick(dateStr, time)}
+                    className={`p-3 rounded border cursor-pointer hover:shadow-sm transition-shadow ${getAppointmentStatusColor(appointment.status)}`}
+                    onClick={() => handleAppointmentClick(appointment)}
                   >
-                    {slotEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        className={`text-xs px-1 py-0.5 rounded border mb-1 cursor-pointer ${getStatusColorClass(
-                          event.resource?.status || 'scheduled'
-                        )}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAppointmentClick(event);
-                        }}
-                        title={event.title}
-                      >
-                        {event.title.length > 15 ? `${event.title.slice(0, 15)}...` : event.title}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Render month view
-  const renderMonthView = () => {
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    const startOfCalendar = new Date(startOfMonth);
-    startOfCalendar.setDate(startOfCalendar.getDate() - startOfCalendar.getDay());
-
-    const calendarDays = [];
-    const current = new Date(startOfCalendar);
-    
-    for (let i = 0; i < 42; i++) { // 6 weeks * 7 days
-      calendarDays.push(new Date(current));
-      current.setDate(current.getDate() + 1);
-    }
-
-    return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {/* Month header */}
-        <div className="grid grid-cols-7 border-b border-slate-200">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-3 text-center text-sm font-medium text-slate-600">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Calendar grid */}
-        <div className="grid grid-cols-7">
-          {calendarDays.map((day) => {
-            const dateStr = day.toISOString().split('T')[0];
-            const dayEvents = events.filter(event => 
-              event.start.toISOString().split('T')[0] === dateStr
-            );
-            const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-            const isToday = dateStr === new Date().toISOString().split('T')[0];
-
-            return (
-              <div
-                key={dateStr}
-                className={`min-h-[6rem] p-2 border-b border-r border-slate-100 cursor-pointer hover:bg-slate-50 ${
-                  !isCurrentMonth ? 'bg-slate-50 text-slate-400' : ''
-                } ${isToday ? 'bg-sky-50' : ''}`}
-                onClick={() => {
-                  setCurrentDate(day);
-                  setView('day');
-                }}
-              >
-                <div className={`text-sm font-medium mb-1 ${isToday ? 'text-sky-600' : ''}`}>
-                  {day.getDate()}
-                </div>
-                <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map((event) => (
-                    <div
-                      key={event.id}
-                      className={`text-xs px-1 py-0.5 rounded border cursor-pointer ${getStatusColorClass(
-                        event.resource?.status || 'scheduled'
-                      )}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAppointmentClick(event);
-                      }}
-                      title={event.title}
-                    >
-                      {event.title.length > 12 ? `${event.title.slice(0, 12)}...` : event.title}
-                    </div>
-                  ))}
-                  {dayEvents.length > 3 && (
+                    <div className="font-medium">{appointment.patientName}</div>
+                    <div className="text-sm text-slate-600">{appointment.reason}</div>
                     <div className="text-xs text-slate-500">
-                      +{dayEvents.length - 3} {getBilingualLabel("more", "மேலும்")}
+                      {appointment.duration} minutes • {appointment.status}
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-400 italic">
+                    {getBilingualLabel("Available", "கிடைக்கிறது")}
+                  </div>
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     );
   };
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-800">{getBilingualLabel("Error loading calendar:", "காலெண்டரை ஏற்றுவதில் பிழை:")} {error}</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-4">
-      {/* Calendar controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center space-x-4">
-          <Button onClick={navigatePrevious} variant="secondary" size="sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </Button>
-          <h2 className="text-xl font-semibold text-slate-900 min-w-[200px] text-center">
-            {view === 'month' && currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            {view === 'week' && `${getBilingualLabel("Week of", "வாரம்")} ${formatDateForDisplay(currentDate)}`}
-            {view === 'day' && formatDateForDisplay(currentDate)}
-          </h2>
-          <Button onClick={navigateNext} variant="secondary" size="sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Button>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button onClick={goToToday} variant="secondary" size="sm">
-            {getBilingualLabel("Today", "இன்று")}
-          </Button>
-          <div className="flex rounded-md shadow-sm">
-            {(['month', 'week', 'day'] as CalendarView[]).map((viewType) => (
-              <button
-                key={viewType}
-                onClick={() => setView(viewType)}
-                className={`px-3 py-1 text-sm font-medium border ${
-                  view === viewType
-                    ? 'bg-sky-600 text-white border-sky-600'
-                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                } ${viewType === 'month' ? 'rounded-l-md' : viewType === 'day' ? 'rounded-r-md' : ''}`}
+    <div className="space-y-6">
+      {/* Calendar Header */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-semibold text-sky-700">
+              {getBilingualLabel("Appointment Calendar", "சந்திப்பு நாட்காட்டி")}
+            </h3>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={() => {
+                  if (viewMode === 'month') navigateMonth('prev');
+                  else if (viewMode === 'week') navigateWeek('prev');
+                  else navigateDay('prev');
+                }}
+                variant="secondary"
+                size="sm"
               >
-                {viewType === 'month' && getBilingualLabel("Month", "மாதம்")}
-                {viewType === 'week' && getBilingualLabel("Week", "வாரம்")}
-                {viewType === 'day' && getBilingualLabel("Day", "நாள்")}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Button>
+              <span className="text-lg font-medium text-slate-900 min-w-48 text-center">
+                {viewMode === 'month' && `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
+                {viewMode === 'week' && `Week of ${currentDate.toLocaleDateString()}`}
+                {viewMode === 'day' && currentDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+              <Button
+                onClick={() => {
+                  if (viewMode === 'month') navigateMonth('next');
+                  else if (viewMode === 'week') navigateWeek('next');
+                  else navigateDay('next');
+                }}
+                variant="secondary"
+                size="sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <div className="flex bg-slate-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('month')}
+                className={`px-3 py-1 text-sm font-medium rounded ${
+                  viewMode === 'month' 
+                    ? 'bg-white text-sky-700 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {getBilingualLabel("Month", "மாதம்")}
               </button>
-            ))}
+              <button
+                onClick={() => setViewMode('week')}
+                className={`px-3 py-1 text-sm font-medium rounded ${
+                  viewMode === 'week' 
+                    ? 'bg-white text-sky-700 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {getBilingualLabel("Week", "வாரம்")}
+              </button>
+              <button
+                onClick={() => setViewMode('day')}
+                className={`px-3 py-1 text-sm font-medium rounded ${
+                  viewMode === 'day' 
+                    ? 'bg-white text-sky-700 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {getBilingualLabel("Day", "நாள்")}
+              </button>
+            </div>
+            <Button
+              onClick={() => setCurrentDate(new Date())}
+              variant="secondary"
+              size="sm"
+            >
+              {getBilingualLabel("Today", "இன்று")}
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Loading indicator */}
-      {isLoading && (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-      {/* Calendar view */}
-      {!isLoading && (
-        <>
-          {view === 'month' && renderMonthView()}
-          {view === 'week' && renderWeekView()}
-          {view === 'day' && renderDayView()}
-        </>
-      )}
-
-      {/* Legend */}
-      <div className="bg-slate-50 rounded-md p-4">
-        <h4 className="text-sm font-medium text-slate-700 mb-2">
-          {getBilingualLabel("Status Legend", "நிலை குறியீடு")}
-        </h4>
-        <div className="flex flex-wrap gap-4 text-xs">
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded border bg-blue-100 border-blue-200 mr-2"></div>
-            {getBilingualLabel("Scheduled", "திட்டமிடப்பட்டது")}
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded border bg-green-100 border-green-200 mr-2"></div>
-            {getBilingualLabel("Confirmed", "உறுதிப்படுத்தப்பட்டது")}
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded border bg-gray-100 border-gray-200 mr-2"></div>
-            {getBilingualLabel("Completed", "முடிக்கப்பட்டது")}
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded border bg-red-100 border-red-200 mr-2"></div>
-            {getBilingualLabel("Cancelled", "ரத்துசெய்யப்பட்டது")}
-          </div>
+      {/* Calendar Content */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="p-6">
+          {viewMode === 'month' && renderMonthView()}
+          {viewMode === 'week' && renderWeekView()}
+          {viewMode === 'day' && renderDayView()}
         </div>
       </div>
+
+      {/* Reschedule Modal */}
+      {selectedAppointment && (
+        <Modal
+          isOpen={isRescheduleModalOpen}
+          onClose={() => {
+            setIsRescheduleModalOpen(false);
+            setSelectedAppointment(null);
+          }}
+          title={getBilingualLabel("Reschedule Appointment", "சந்திப்பை மாற்றியமைக்கவும்")}
+        >
+          <div className="space-y-4">
+            <div className="bg-slate-50 p-4 rounded-lg">
+              <h4 className="font-medium text-slate-900 mb-2">
+                {getBilingualLabel("Current Appointment", "தற்போதைய சந்திப்பு")}
+              </h4>
+              <p><strong>{getBilingualLabel("Patient", "நோயாளி")}:</strong> {selectedAppointment.patientName}</p>
+              <p><strong>{getBilingualLabel("Date", "தேதி")}:</strong> {selectedAppointment.date}</p>
+              <p><strong>{getBilingualLabel("Time", "நேரம்")}:</strong> {selectedAppointment.time}</p>
+              <p><strong>{getBilingualLabel("Reason", "காரணம்")}:</strong> {selectedAppointment.reason}</p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const newDate = formData.get('newDate') as string;
+                const newTime = formData.get('newTime') as string;
+                handleReschedule(newDate, newTime);
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="newDate" className="block text-sm font-medium text-slate-700">
+                    {getBilingualLabel("New Date", "புதிய தேதி")}
+                  </label>
+                  <input
+                    type="date"
+                    id="newDate"
+                    name="newDate"
+                    defaultValue={selectedAppointment.date}
+                    min={formatDateToInput(new Date())}
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="newTime" className="block text-sm font-medium text-slate-700">
+                    {getBilingualLabel("New Time", "புதிய நேரம்")}
+                  </label>
+                  <input
+                    type="time"
+                    id="newTime"
+                    name="newTime"
+                    defaultValue={selectedAppointment.time}
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setIsRescheduleModalOpen(false);
+                    setSelectedAppointment(null);
+                  }}
+                  disabled={isLoading}
+                >
+                  {getBilingualLabel("Cancel", "ரத்துசெய்")}
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={isLoading}
+                >
+                  {getBilingualLabel("Reschedule", "மாற்றியமைக்கவும்")}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
