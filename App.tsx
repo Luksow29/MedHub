@@ -8,8 +8,17 @@ import { supabase } from './lib/supabase';
 // Components
 import AuthPage from './components/AuthPage';
 import DashboardPage from './pages/DashboardPage';
-import AppointmentsPage from './pages/AppointmentsPage';
-import PatientsPage from './pages/PatientsPage';
+
+// Appointment Management Pages
+import AppointmentsListPage from './pages/appointments/AppointmentsListPage';
+import CalendarViewPage from './pages/appointments/CalendarViewPage';
+import SchedulerPage from './pages/appointments/SchedulerPage';
+import WaitlistPage from './pages/appointments/WaitlistPage';
+
+// Patient Management Pages
+import PatientDirectoryPage from './pages/patients/PatientDirectoryPage';
+import PatientSearchPage from './pages/patients/PatientSearchPage';
+import MedicalRecordsPage from './pages/patients/MedicalRecordsPage';
 import PatientDetailsPage from './features/patient-management/components/PatientDetailsPage';
 
 const App: React.FC = () => {
@@ -59,16 +68,21 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
+        {/* Dashboard */}
         <Route path="/" element={<DashboardPage user={session} onLogout={handleLogout} />} />
         <Route path="/dashboard" element={<DashboardPage user={session} onLogout={handleLogout} />} />
-        <Route path="/appointments" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/appointments/calendar" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/appointments/scheduler" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/appointments/waitlist" element={<AppointmentsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/patients" element={<PatientsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/patients/directory" element={<PatientsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/patients/search" element={<PatientsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/patients/records" element={<PatientsPage user={session} onLogout={handleLogout} />} />
+        
+        {/* Appointment Management */}
+        <Route path="/appointments" element={<AppointmentsListPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments/calendar" element={<CalendarViewPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments/scheduler" element={<SchedulerPage user={session} onLogout={handleLogout} />} />
+        <Route path="/appointments/waitlist" element={<WaitlistPage user={session} onLogout={handleLogout} />} />
+        
+        {/* Patient Management */}
+        <Route path="/patients" element={<PatientDirectoryPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients/directory" element={<PatientDirectoryPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients/search" element={<PatientSearchPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patients/records" element={<MedicalRecordsPage user={session} onLogout={handleLogout} />} />
         <Route path="/patient/:patientId" element={<PatientDetailsPage />} />
       </Routes>
     </Router>
