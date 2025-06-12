@@ -53,14 +53,19 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   useEffect(() => {
     if (height && weight) {
       let calculatedBmi: number;
-      const heightInMeters = heightUnit === HeightUnit.CM ? Number(height) / 100 : Number(height) * 0.0254; // cm to m, in to m
-      const weightInKg = weightUnit === WeightUnit.LBS ? Number(weight) * 0.453592 : Number(weight); // lbs to kg
+      // height மற்றும் weight பூஜ்ஜியத்தை விட அதிகமாக இருப்பதை உறுதி செய்கிறோம்
+      if (Number(height) > 0 && Number(weight) > 0) {
+        const heightInMeters = heightUnit === HeightUnit.CM ? Number(height) / 100 : Number(height) * 0.0254; // cm to m, in to m
+        const weightInKg = weightUnit === WeightUnit.LBS ? Number(weight) * 0.453592 : Number(weight); // lbs to kg
 
-      if (heightInMeters > 0) {
-        calculatedBmi = weightInKg / (heightInMeters * heightInMeters);
-        setBmi(parseFloat(calculatedBmi.toFixed(2)));
+        if (heightInMeters > 0) {
+          calculatedBmi = weightInKg / (heightInMeters * heightInMeters);
+          setBmi(parseFloat(calculatedBmi.toFixed(2)));
+        } else {
+          setBmi('');
+        }
       } else {
-        setBmi('');
+        setBmi(''); // height அல்லது weight பூஜ்ஜியமாகவோ அல்லது குறைவாகவோ இருந்தால் BMI ஐ காலியாக்குகிறோம்
       }
     } else {
       setBmi('');
@@ -113,14 +118,14 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Temperature */}
         <div>
-          <label htmlFor="temperature" className="block text-sm font-medium text-slate-700"> {/* mb-1 நீக்கப்பட்டது */}
+          <label htmlFor="temperature" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Temperature", "வெப்பநிலை")}
           </label>
           {/* Tamil label for Celsius/Fahrenheit */}
-          <span className="block text-xs text-slate-500 mt-0.5 mb-2"> {/* mt-0.5 மற்றும் mb-2 சேர்க்கப்பட்டது */}
+          <span className="block text-xs text-slate-500 pt-0.5 pb-2"> {/* pt-0.5 மற்றும் pb-2 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Celsius", "செல்சியஸ்")}/{getBilingualLabel("Fahrenheit", "பாரன்ஹீட்")}
           </span>
-          <div className="flex rounded-md shadow-sm"> {/* mt-1 நீக்கப்பட்டது */}
+          <div className="flex rounded-md shadow-sm mt-0.5"> {/* mt-0.5 சேர்க்கப்பட்டது */}
             <input
               type="number"
               id="temperature"
@@ -142,41 +147,41 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
         {/* Heart Rate */}
         <div>
-          <label htmlFor="heartRate" className="block text-sm font-medium text-slate-700"> {/* mb-1 நீக்கப்பட்டது */}
+          <label htmlFor="heartRate" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Heart Rate", "இதய துடிப்பு")}
           </label>
-          <span className="block text-xs text-slate-500 mt-0.5 mb-2">{getBilingualLabel("bpm", "bpm")}</span> {/* mt-0.5 மற்றும் mb-2 சேர்க்கப்பட்டது */}
+          <span className="block text-xs text-slate-500 pt-0.5 pb-2">{getBilingualLabel("bpm", "bpm")}</span> {/* pt-0.5 மற்றும் pb-2 சேர்க்கப்பட்டது */}
           <input
             type="number"
             id="heartRate"
             value={heartRate}
             onChange={(e) => setHeartRate(e.target.value === '' ? '' : Number(e.target.value))}
-            className="flex w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2" {/* mt-1 நீக்கப்பட்டது, flex சேர்க்கப்பட்டது */}
+            className="flex w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2 mt-0.5" {/* mt-0.5 சேர்க்கப்பட்டது */}
           />
         </div>
 
         {/* Respiratory Rate */}
         <div>
-          <label htmlFor="respiratoryRate" className="block text-sm font-medium text-slate-700"> {/* mb-1 நீக்கப்பட்டது */}
+          <label htmlFor="respiratoryRate" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Respiratory Rate", "சுவாச வீதம்")}
           </label>
-          <span className="block text-xs text-slate-500 mt-0.5 mb-2">{getBilingualLabel("breaths/min", "மூச்சுகள்/நிமிடம்")}</span> {/* mt-0.5 மற்றும் mb-2 சேர்க்கப்பட்டது */}
+          <span className="block text-xs text-slate-500 pt-0.5 pb-2">{getBilingualLabel("breaths/min", "மூச்சுகள்/நிமிடம்")}</span> {/* pt-0.5 மற்றும் pb-2 சேர்க்கப்பட்டது */}
           <input
             type="number"
             id="respiratoryRate"
             value={respiratoryRate}
             onChange={(e) => setRespiratoryRate(e.target.value === '' ? '' : Number(e.target.value))}
-            className="flex w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2" {/* mt-1 நீக்கப்பட்டது, flex சேர்க்கப்பட்டது */}
+            className="flex w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2 mt-0.5" {/* mt-0.5 சேர்க்கப்பட்டது */}
           />
         </div>
 
         {/* Blood Pressure */}
         <div className="col-span-1 sm:col-span-2">
-          <label className="block text-sm font-medium text-slate-700"> {/* mb-1 நீக்கப்பட்டது */}
+          <label className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Blood Pressure", "இரத்த அழுத்தம்")}
           </label>
-          <span className="block text-xs text-slate-500 mt-0.5 mb-2">{getBilingualLabel("mmHg", "mmHg")}</span> {/* mt-0.5 மற்றும் mb-2 சேர்க்கப்பட்டது */}
-          <div className="flex space-x-2"> {/* mt-1 நீக்கப்பட்டது */}
+          <span className="block text-xs text-slate-500 pt-0.5 pb-2">{getBilingualLabel("mmHg", "mmHg")}</span> {/* pt-0.5 மற்றும் pb-2 சேர்க்கப்பட்டது */}
+          <div className="flex space-x-2 mt-0.5"> {/* mt-0.5 சேர்க்கப்பட்டது */}
             <input
               type="number"
               id="bpSystolic"
@@ -199,10 +204,10 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
         {/* Oxygen Saturation */}
         <div>
-          <label htmlFor="oxygenSaturation" className="block text-sm font-medium text-slate-700"> {/* mb-1 நீக்கப்பட்டது */}
+          <label htmlFor="oxygenSaturation" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Oxygen Saturation", "ஆக்ஸிஜன் செறிவூட்டல்")}
           </label>
-          <span className="block text-xs text-slate-500 mt-0.5 mb-2">{getBilingualLabel("%", "%")}</span> {/* mt-0.5 மற்றும் mb-2 சேர்க்கப்பட்டது */}
+          <span className="block text-xs text-slate-500 pt-0.5 pb-2">{getBilingualLabel("%", "%")}</span> {/* pt-0.5 மற்றும் pb-2 சேர்க்கப்பட்டது */}
           <input
             type="number"
             id="oxygenSaturation"
@@ -210,16 +215,16 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
             onChange={(e) => setOxygenSaturation(e.target.value === '' ? '' : Number(e.target.value))}
             min="0"
             max="100"
-            className="flex w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2" {/* mt-1 நீக்கப்பட்டது, flex சேர்க்கப்பட்டது */}
+            className="flex w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2 mt-0.5" {/* mt-0.5 சேர்க்கப்பட்டது */}
           />
         </div>
 
         {/* Height */}
         <div>
-          <label htmlFor="height" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="height" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Height", "உயரம்")}
           </label>
-          <div className="mt-1 flex rounded-md shadow-sm">
+          <div className="mt-0.5 flex rounded-md shadow-sm"> {/* mt-0.5 சேர்க்கப்பட்டது */}
             <input
               type="number"
               id="height"
@@ -241,10 +246,10 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
         {/* Weight */}
         <div>
-          <label htmlFor="weight" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="weight" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Weight", "எடை")}
           </label>
-          <div className="mt-1 flex rounded-md shadow-sm">
+          <div className="mt-0.5 flex rounded-md shadow-sm"> {/* mt-0.5 சேர்க்கப்பட்டது */}
             <input
               type="number"
               id="weight"
@@ -266,7 +271,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
         {/* BMI */}
         <div>
-          <label htmlFor="bmi" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="bmi" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("BMI", "பிஎம்ஐ")}
           </label>
           <input
@@ -274,16 +279,16 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
             id="bmi"
             value={bmi}
             readOnly
-            className="mt-1 block w-full rounded-md border-slate-300 shadow-sm bg-slate-50 cursor-not-allowed sm:text-sm p-2"
+            className="mt-0.5 block w-full rounded-md border-slate-300 shadow-sm bg-slate-50 cursor-not-allowed sm:text-sm p-2" {/* mt-0.5 சேர்க்கப்பட்டது */}
           />
         </div>
 
         {/* Pain Score */}
         <div>
-          <label htmlFor="painScore" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="painScore" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
             {getBilingualLabel("Pain Score", "வலிப் புள்ளி")}
           </label>
-          <span className="block text-xs text-slate-500 mt-0.5 mb-2">{getBilingualLabel("(0-10)", "(0-10)")}</span> {/* யூனிட் தனியாக */}
+          <span className="block text-xs text-slate-500 pt-0.5 pb-2">{getBilingualLabel("(0-10)", "(0-10)")}</span> {/* pt-0.5 மற்றும் pb-2 சேர்க்கப்பட்டது */}
           <input
             type="number"
             id="painScore"
@@ -291,14 +296,14 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
             onChange={(e) => setPainScore(e.target.value === '' ? '' : Number(e.target.value))}
             min="0"
             max="10"
-            className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2"
+            className="mt-0.5 block w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2" {/* mt-0.5 சேர்க்கப்பட்டது */}
           />
         </div>
       </div>
 
       {/* Notes */}
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-slate-700 mb-1">
+        <label htmlFor="notes" className="block text-sm font-medium text-slate-700 pb-1"> {/* pb-1 சேர்க்கப்பட்டது */}
           {getBilingualLabel("Notes (Optional)", "குறிப்புகள் (விருப்பமானது)")}
         </label>
         <textarea
@@ -306,7 +311,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2"
+          className="mt-0.5 block w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2" {/* mt-0.5 சேர்க்கப்பட்டது */}
         />
       </div>
 
