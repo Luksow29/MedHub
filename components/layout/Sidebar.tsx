@@ -126,19 +126,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           ),
           href: '/consultations'
         },
-        {
-          id: 'consultation-details', // புதிய ஐட்டம்
-          label: 'Consultation Details',
-          tamilLabel: 'ஆலோசனை விவரங்கள்',
-          icon: (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          ),
-          href: '/consultations/example-id', // Placeholder URL
-          // இது ஒரு Placeholder மற்றும் Consultation Details பக்கத்திற்கு ஒரு சரியான ID தேவை.
-          // பொதுவாக, இது "Consultations List" இலிருந்து ஒரு ஆலோசனையைத் தேர்ந்தெடுப்பதன் மூலம் பெறப்படுகிறது.
-        },
+        // 'Consultation Details' ஐட்டம் அகற்றப்பட்டது
+        // {
+        //   id: 'consultation-details', // புதிய ஐட்டம்
+        //   label: 'Consultation Details',
+        //   tamilLabel: 'ஆலோசனை விவரங்கள்',
+        //   icon: (
+        //     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        //     </svg>
+        //   ),
+        //   href: '/consultations/example-id', // Placeholder URL
+        //   // இது ஒரு Placeholder மற்றும் Consultation Details பக்கத்திற்கு ஒரு சரியான ID தேவை.
+        //   // பொதுவாக, இது "Consultations List" இலிருந்து ஒரு ஆலோசனையைத் தேர்ந்தெடுப்பதன் மூலம் பெறப்படுகிறது.
+        // },
         {
           id: 'reports',
           label: 'Reports & Analytics',
@@ -247,7 +248,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </svg>
           )}
         </Link>
-        
+
         {hasChildren && (!collapsed || level > 0) && (
           <div className="mt-1 space-y-1">
             {item.children!.map(child => renderNavigationItem(child, level + 1))}
