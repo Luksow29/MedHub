@@ -19,33 +19,34 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
   const navigate = useNavigate();
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
-  // State to hold the currently selected patient for detailed viewing
+  // தேர்ந்தெடுக்கப்பட்ட நோயாளியின் விவரங்களை வைத்திருக்க மாநிலம்
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
-  // Handle patient selection from the search component
+  // தேடல் தொகுதியிலிருந்து நோயாளியைத் தேர்ந்தெடுப்பதற்கான செயல்பாடு
   const handlePatientSelect = useCallback((patient: Patient) => {
     setSelectedPatient(patient);
   }, []);
 
-  // Handle navigating back to the patient search interface
+  // நோயாளி தேடல் இடைமுகத்திற்கு மீண்டும் செல்ல செயல்பாடு
   const handleBackToSearch = useCallback(() => {
     setSelectedPatient(null);
   }, []);
 
-  // Fetch comprehensive patient data when a patient is selected
+  // நோயாளி தேர்ந்தெடுக்கப்படும்போது விரிவான நோயாளி தரவை எடுக்கவும்
+  // selectedPatient.id இருக்கும்போது மட்டுமே usePatientData ஹூக்கை அழைக்கவும்
   const {
     patientData,
     isLoading: isPatientDataLoading,
     error: patientDataError
   } = usePatientData(selectedPatient?.id || '');
 
-  // State for collapsible sections
+  // விரிவுபடுத்தக்கூடிய பிரிவுகளுக்கான மாநிலம்
   const [isMedicalHistoryExpanded, setIsMedicalHistoryExpanded] = useState(true);
   const [isMedicationsExpanded, setIsMedicationsExpanded] = useState(true);
   const [isAllergiesExpanded, setIsAllergiesExpanded] = useState(true);
   const [isDocumentsExpanded, setIsDocumentsExpanded] = useState(true);
 
-  // Toggle functions for collapsible sections
+  // விரிவுபடுத்தக்கூடிய பிரிவுகளுக்கான மாற்று செயல்பாடுகள்
   const toggleMedicalHistory = useCallback(() => setIsMedicalHistoryExpanded(prev => !prev), []);
   const toggleMedications = useCallback(() => setIsMedicationsExpanded(prev => !prev), []);
   const toggleAllergies = useCallback(() => setIsAllergiesExpanded(prev => !prev), []);
@@ -60,38 +61,34 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
         { label: getBilingualLabel('Patient Management', 'நோயாளர் நிர்வாகம்'), href: '/patients' },
         { label: getBilingualLabel('Medical Records', 'மருத்துவ பதிவுகள்') }
       ]}
+      isLoading={isPatientDataLoading && selectedPatient !== null} // நோயாளி தேர்ந்தெடுக்கப்பட்டால் மட்டுமே சுழலியை காட்டு
     >
-      {/* Page Header */}
+      {/* பக்கத் தலைப்பு */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 print:hidden">
         <h2 className="text-3xl font-semibold text-slate-800">
           {getBilingualLabel("Medical Records", "மருத்துவ பதிவுகள்")}
         </h2>
       </div>
 
-      {/* Conditional Rendering: Show Patient Search or Medical Records View */}
+      {/* நிபந்தனைக்குட்பட்ட ரெண்டரிங்: நோயாளி தேடலைக் காட்டு அல்லது மருத்துவ பதிவுகளைக் காட்டு */}
       {!selectedPatient ? (
-        // Patient Search Component
+        // நோயாளி தேடல் தொகுதி
         <PatientSearchComponent
           showSelectButton={true}
           onPatientSelect={handlePatientSelect}
         />
       ) : (
-        // Comprehensive Medical Records View
+        // விரிவான மருத்துவ பதிவுகள் காட்சி
         <>
-          {/* PrintablePageWrapper wraps content that should be printed */}
+          {/* பிரிண்ட் செய்யப்பட வேண்டிய உள்ளடக்கத்தை மூடும் PrintablePageWrapper */}
           <PrintablePageWrapper patient={selectedPatient} contentId="printable-medical-records">
-            {isPatientDataLoading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600 mx-auto mb-4"></div>
-                <p className="text-slate-600">{getBilingualLabel("Loading medical records...", "மருத்துவ பதிவுகளை ஏற்றுகிறது...")}</p>
-              </div>
-            ) : patientDataError ? (
+            {patientDataError ? (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <span className="block sm:inline">{patientDataError.message || getBilingualLabel("Error loading medical records.", "மருத்துவ பதிவுகளை ஏற்றுவதில் பிழை.")}</span>
               </div>
             ) : (
-              <div id="printable-medical-records" className="space-y-6">
-                {/* Medical History Section */}
+              <div id="printable-medical-records-content" className="space-y-6"> {/* உள்ளடக்கத்திற்கான புதிய ID */}
+                {/* மருத்துவ வரலாறு பிரிவு */}
                 <CollapsibleSection
                   title={getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}
                   isExpanded={isMedicalHistoryExpanded}
@@ -110,7 +107,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   )}
                 </CollapsibleSection>
 
-                {/* Medications Section */}
+                {/* மருந்துகள் பிரிவு */}
                 <CollapsibleSection
                   title={getBilingualLabel("Medications", "மருந்துகள்")}
                   isExpanded={isMedicationsExpanded}
@@ -129,7 +126,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   )}
                 </CollapsibleSection>
 
-                {/* Allergies Section */}
+                {/* ஒவ்வாமைகள் பிரிவு */}
                 <CollapsibleSection
                   title={getBilingualLabel("Allergies", "ஒவ்வாமைகள்")}
                   isExpanded={isAllergiesExpanded}
@@ -148,7 +145,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   )}
                 </CollapsibleSection>
 
-                {/* Documents Section */}
+                {/* ஆவணங்கள் பிரிவு */}
                 <CollapsibleSection
                   title={getBilingualLabel("Documents", "ஆவணங்கள்")}
                   isExpanded={isDocumentsExpanded}
@@ -173,13 +170,13 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
             )}
           </PrintablePageWrapper>
 
-          {/* Action Buttons (Hidden when printing) */}
+          {/* செயல் பொத்தான்கள் (அச்சிடும்போது மறைக்கப்படும்) */}
           <div className="flex justify-end gap-4 mt-6 print:hidden">
             <Button onClick={handleBackToSearch} variant="secondary">
               {getBilingualLabel("Back to Search", "தேடலுக்குத் திரும்பு")}
             </Button>
             {selectedPatient && (
-              <PrintExportButton targetId="printable-medical-records" filename={`MedicalRecords-${selectedPatient.name}.pdf`} />
+              <PrintExportButton targetId="printable-medical-records-content" filename={`MedicalRecords-${selectedPatient.name}.pdf`} /> {/* ID மாற்றப்பட்டுள்ளது */}
             )}
           </div>
         </>
