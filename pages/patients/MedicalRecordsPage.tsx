@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import PatientSearchComponent from '../../components/PatientSearchComponent';
 import Button from '../../components/shared/Button';
-import PrintablePageWrapper from '../../components/shared/PrintablePageWrapper';
 import PrintExportButton from '../../components/shared/PrintExportButton';
-import CollapsibleSection from '../../components/shared/CollapsibleSection'; // Assuming this component exists or will be created
-import { Patient, MedicalRecord, Medication, Allergy, Document } from '../../types'; // Assuming these types are available
-import { usePatientData } from '../../features/patient-management/hooks/usePatientData'; // Assuming this hook is available
+import CollapsibleSection from '../../components/shared/CollapsibleSection';
+import { Patient } from '../../types';
+import { usePatientData } from '../../features/patient-management/hooks/usePatientData';
 
 interface MedicalRecordsPageProps {
   user: User;
@@ -19,38 +18,37 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
   const navigate = useNavigate();
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
-  // தேர்ந்தெடுக்கப்பட்ட நோயாளியின் விவரங்களை வைத்திருக்க மாநிலம்
+  // Selected patient state
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
-  // தேடல் தொகுதியிலிருந்து நோயாளியைத் தேர்ந்தெடுப்பதற்கான செயல்பாடு
+  // Handle patient selection from search component
   const handlePatientSelect = useCallback((patient: Patient) => {
     setSelectedPatient(patient);
   }, []);
 
-  // நோயாளி தேடல் இடைமுகத்திற்கு மீண்டும் செல்ல செயல்பாடு
+  // Go back to search
   const handleBackToSearch = useCallback(() => {
     setSelectedPatient(null);
   }, []);
 
-  // நோயாளி தேர்ந்தெடுக்கப்படும்போது விரிவான நோயாளி தரவை எடுக்கவும்
-  // usePatientData ஹூக் அதன் டேட்டாவை நேரடியாக வழங்குகிறது, patientData ஆப்ஜெக்ட் மூலம் அல்ல
+  // Get patient data when a patient is selected
   const {
-    patient, // directly destructured
-    medicalHistory, // directly destructured
-    medications, // directly destructured
-    allergies, // directly destructured
-    documents, // directly destructured
+    patient,
+    medicalHistory,
+    medications,
+    allergies,
+    documents,
     isLoading: isPatientDataLoading,
     error: patientDataError
   } = usePatientData(selectedPatient?.id || '');
 
-  // விரிவுபடுத்தக்கூடிய பிரிவுகளுக்கான மாநிலம்
+  // Collapsible section states
   const [isMedicalHistoryExpanded, setIsMedicalHistoryExpanded] = useState(true);
   const [isMedicationsExpanded, setIsMedicationsExpanded] = useState(true);
   const [isAllergiesExpanded, setIsAllergiesExpanded] = useState(true);
   const [isDocumentsExpanded, setIsDocumentsExpanded] = useState(true);
 
-  // விரிவுபடுத்தக்கூடிய பிரிவுகளுக்கான மாற்று செயல்பாடுகள்
+  // Toggle functions for collapsible sections
   const toggleMedicalHistory = useCallback(() => setIsMedicalHistoryExpanded(prev => !prev), []);
   const toggleMedications = useCallback(() => setIsMedicationsExpanded(prev => !prev), []);
   const toggleAllergies = useCallback(() => setIsAllergiesExpanded(prev => !prev), []);
@@ -65,18 +63,18 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
         { label: getBilingualLabel('Patient Management', 'நோயாளர் நிர்வாகம்'), href: '/patients' },
         { label: getBilingualLabel('Medical Records', 'மருத்துவ பதிவுகள்') }
       ]}
-      isLoading={isPatientDataLoading && selectedPatient !== null} // நோயாளி தேர்ந்தெடுக்கப்பட்டால் மட்டுமே சுழலியை காட்டு
+      isLoading={isPatientDataLoading && selectedPatient !== null}
     >
-      {/* பக்கத் தலைப்பு - அச்சிடும்போது மறைக்கப்படும் */}
+      {/* Page title - hidden when printing */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 print:hidden">
         <h2 className="text-3xl font-semibold text-slate-800">
           {getBilingualLabel("Medical Records", "மருத்துவ பதிவுகள்")}
         </h2>
       </div>
 
-      {/* நிபந்தனைக்குட்பட்ட ரெண்டரிங்: நோயாளி தேடலைக் காட்டு அல்லது மருத்துவ பதிவுகளைக் காட்டு */}
+      {/* Conditional rendering: show patient search or medical records */}
       {!selectedPatient ? (
-        // நோயாளி தேடல் தொகுதி - அச்சிடும்போது மறைக்கப்படும்
+        // Patient search component - hidden when printing
         <div className="print:hidden">
           <PatientSearchComponent
             showSelectButton={true}
@@ -84,18 +82,30 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
           />
         </div>
       ) : (
-        // விரிவான மருத்துவ பதிவுகள் காட்சி
         <>
-          {/* பிரிண்ட் செய்யப்பட வேண்டிய உள்ளடக்கத்தை மூடும் PrintablePageWrapper */}
-          {/* pageTitle மற்றும் filename அச்சிடும் பொத்தானுக்கு அனுப்பப்படுகிறது */}
-          <PrintablePageWrapper patient={selectedPatient} contentId="printable-medical-records-content">
+          {/* Medical records content */}
+          <div id="printable-medical-records-content" className="space-y-6">
+            {/* Patient header */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+              <h3 className="text-xl font-semibold text-sky-700 mb-4">
+                {getBilingualLabel("Patient Information", "நோயாளர் தகவல்")}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+                <div><p><strong>{getBilingualLabel("Name", "பெயர்")}:</strong> {selectedPatient.name}</p></div>
+                {selectedPatient.dob && <div><p><strong>{getBilingualLabel("DOB", "பிறந்த தேதி")}:</strong> {selectedPatient.dob}</p></div>}
+                {selectedPatient.gender && <div><p><strong>{getBilingualLabel("Gender", "பால்")}:</strong> {selectedPatient.gender}</p></div>}
+                <div><p><strong>{getBilingualLabel("Phone", "தொலைபேசி")}:</strong> {selectedPatient.phone}</p></div>
+                {selectedPatient.email && <div><p><strong>{getBilingualLabel("Email", "மின்னஞ்சல்")}:</strong> {selectedPatient.email}</p></div>}
+              </div>
+            </div>
+
             {patientDataError ? (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <span className="block sm:inline">{patientDataError.message || getBilingualLabel("Error loading medical records.", "மருத்துவ பதிவுகளை ஏற்றுவதில் பிழை.")}</span>
+                <span className="block sm:inline">{patientDataError || getBilingualLabel("Error loading medical records.", "மருத்துவ பதிவுகளை ஏற்றுவதில் பிழை.")}</span>
               </div>
             ) : (
-              <div id="printable-medical-records-content" className="space-y-6">
-                {/* மருத்துவ வரலாறு பிரிவு */}
+              <>
+                {/* Medical History Section */}
                 <CollapsibleSection
                   title={getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}
                   isExpanded={isMedicalHistoryExpanded}
@@ -103,9 +113,10 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                 >
                   {medicalHistory && medicalHistory.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {medicalHistory.map((record: MedicalRecord, index: number) => (
-                        <li key={record.id || index}>
-                          <span className="font-semibold">{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}:</span> {record.description}
+                      {medicalHistory.map((record) => (
+                        <li key={record.id}>
+                          <span className="font-semibold">{record.diagnosisDate}:</span> {record.conditionName}
+                          {record.notes && <p className="text-sm text-slate-600 ml-4">{record.notes}</p>}
                         </li>
                       ))}
                     </ul>
@@ -114,7 +125,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   )}
                 </CollapsibleSection>
 
-                {/* மருந்துகள் பிரிவு */}
+                {/* Medications Section */}
                 <CollapsibleSection
                   title={getBilingualLabel("Medications", "மருந்துகள்")}
                   isExpanded={isMedicationsExpanded}
@@ -122,9 +133,13 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                 >
                   {medications && medications.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {medications.map((med: Medication, index: number) => (
-                        <li key={med.id || index}>
-                          <span className="font-semibold">{med.name}</span>: {med.dosage} ({med.frequency}) - {med.notes}
+                      {medications.map((med) => (
+                        <li key={med.id}>
+                          <span className="font-semibold">{med.medicationName}</span>
+                          {med.dosage && <span> - {med.dosage}</span>}
+                          {med.frequency && <span> ({med.frequency})</span>}
+                          {med.startDate && <p className="text-sm text-slate-600 ml-4">{getBilingualLabel("Started", "தொடங்கியது")}: {med.startDate}</p>}
+                          {med.notes && <p className="text-sm text-slate-600 ml-4">{med.notes}</p>}
                         </li>
                       ))}
                     </ul>
@@ -133,7 +148,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   )}
                 </CollapsibleSection>
 
-                {/* ஒவ்வாமைகள் பிரிவு */}
+                {/* Allergies Section */}
                 <CollapsibleSection
                   title={getBilingualLabel("Allergies", "ஒவ்வாமைகள்")}
                   isExpanded={isAllergiesExpanded}
@@ -141,9 +156,12 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                 >
                   {allergies && allergies.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {allergies.map((allergy: Allergy, index: number) => (
-                        <li key={allergy.id || index}>
-                          <span className="font-semibold">{allergy.agent}</span>: {allergy.reaction} - {allergy.severity}
+                      {allergies.map((allergy) => (
+                        <li key={allergy.id}>
+                          <span className="font-semibold">{allergy.allergenName}</span>
+                          {allergy.reaction && <span> - {allergy.reaction}</span>}
+                          {allergy.severity && <span> ({allergy.severity})</span>}
+                          {allergy.notes && <p className="text-sm text-slate-600 ml-4">{allergy.notes}</p>}
                         </li>
                       ))}
                     </ul>
@@ -152,7 +170,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   )}
                 </CollapsibleSection>
 
-                {/* ஆவணங்கள் பிரிவு */}
+                {/* Documents Section */}
                 <CollapsibleSection
                   title={getBilingualLabel("Documents", "ஆவணங்கள்")}
                   isExpanded={isDocumentsExpanded}
@@ -160,12 +178,16 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                 >
                   {documents && documents.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {documents.map((doc: Document, index: number) => (
-                        <li key={doc.id || index}>
-                          <span className="font-semibold">{doc.name}</span> ({doc.type}) -{' '}
-                          <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">
-                            {getBilingualLabel("View Document", "ஆவணத்தைப் பார்க்கவும்")}
-                          </a>
+                      {documents.map((doc) => (
+                        <li key={doc.id}>
+                          <span className="font-semibold">{doc.documentType}</span> - {doc.fileName}
+                          <div className="ml-4">
+                            <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline print:text-black print:no-underline">
+                              {getBilingualLabel("View Document", "ஆவணத்தைப் பார்க்கவும்")}
+                            </a>
+                            <p className="text-xs text-slate-500">{getBilingualLabel("Uploaded", "பதிவேற்றப்பட்டது")}: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                            {doc.notes && <p className="text-sm text-slate-600">{doc.notes}</p>}
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -173,22 +195,21 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                     <p className="text-slate-500">{getBilingualLabel("No documents attached.", "ஆவணங்கள் இணைக்கப்படவில்லை.")}</p>
                   )}
                 </CollapsibleSection>
-              </div>
+              </>
             )}
-          </PrintablePageWrapper>
+          </div>
 
-          {/* செயல் பொத்தான்கள் (அச்சிடும்போது மறைக்கப்படும்) */}
+          {/* Action buttons (hidden when printing) */}
           <div className="flex justify-end gap-4 mt-6 print:hidden">
             <Button onClick={handleBackToSearch} variant="secondary">
               {getBilingualLabel("Back to Search", "தேடலுக்குத் திரும்பு")}
             </Button>
-            {selectedPatient && (
-              <PrintExportButton 
-                targetId="printable-medical-records-content" 
-                filename={`MedicalRecords-${selectedPatient.name}.pdf`} 
-                pageTitle={`${selectedPatient.name} மருத்துவ பதிவுகள்`} // Dynamic pageTitle for print
-              /> 
-            )}
+            <PrintExportButton 
+              targetId="printable-medical-records-content" 
+              filename={`MedicalRecords-${selectedPatient.name.replace(/\s+/g, '_')}.pdf`}
+              variant="primary"
+              size="md"
+            />
           </div>
         </>
       )}
