@@ -1,22 +1,23 @@
 // src/features/patient-management/components/MedicationForm.tsx
 
 import React, { useState } from 'react';
-import { NewDbMedication } from '../../../types'; // பாதை சரிபார்க்கவும்
+import { Medication, NewDbMedication, UpdateDbMedication } from '../../../types'; // பாதை சரிபார்க்கவும்
 import Button from '../../../components/shared/Button'; // சரி செய்யப்பட்ட பாதை
 import { formatDateToInput } from '../../../utils/dateHelpers'; // பாதை சரிபார்க்கவும்
 
 interface MedicationFormProps {
-  onSubmit: (data: NewDbMedication) => Promise<void>;
+  medication?: Medication;
+  onSubmit: (data: NewDbMedication | UpdateDbMedication) => Promise<void>;
   onCancel: () => void;
 }
 
-const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, onCancel }) => {
-  const [medicationName, setMedicationName] = useState('');
-  const [dosage, setDosage] = useState('');
-  const [frequency, setFrequency] = useState('');
-  const [startDate, setStartDate] = useState(formatDateToInput(new Date()));
-  const [endDate, setEndDate] = useState(''); // Optional
-  const [notes, setNotes] = useState('');
+const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit, onCancel }) => {
+  const [medicationName, setMedicationName] = useState(medication?.medicationName || '');
+  const [dosage, setDosage] = useState(medication?.dosage || '');
+  const [frequency, setFrequency] = useState(medication?.frequency || '');
+  const [startDate, setStartDate] = useState(medication?.startDate || formatDateToInput(new Date()));
+  const [endDate, setEndDate] = useState(medication?.endDate || ''); // Optional
+  const [notes, setNotes] = useState(medication?.notes || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
@@ -105,7 +106,7 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, onCancel }) =
           {getBilingualLabel("Cancel", "ரத்துசெய்")}
         </Button>
         <Button type="submit" variant="primary" isLoading={isLoading}>
-          {getBilingualLabel("Add Medication", "மருந்தைச் சேர்")}
+          {medication ? getBilingualLabel("Update Medication", "மருந்தைப் புதுப்பிக்கவும்") : getBilingualLabel("Add Medication", "மருந்தைச் சேர்")}
         </Button>
       </div>
     </form>

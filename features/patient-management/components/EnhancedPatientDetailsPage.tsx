@@ -14,6 +14,7 @@ import {
 
 import Button from '../../../components/shared/Button';
 import Modal from '../../../components/shared/Modal';
+import PrintablePageWrapper from '../../../components/shared/PrintablePageWrapper';
 import PatientForm from './PatientForm';
 import MedicalHistoryForm from './MedicalHistoryForm';
 import MedicationForm from './MedicationForm';
@@ -345,374 +346,380 @@ const EnhancedPatientDetailsPage: React.FC = () => {
   if (error) return <p className="text-center text-red-600 py-8">{getBilingualLabel("Error:", "பிழை:")} {error}</p>;
   if (!patient) return <p className="text-center text-slate-600 py-8">{getBilingualLabel("Patient not found.", "நோயாளி கண்டுபிடிக்கப்படவில்லை.")}</p>;
 
+  const pageTitle = `${getBilingualLabel("Patient Profile", "நோயாளர் சுயவிவரம்")} - ${patient.name}`;
+
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-slate-800">{getBilingualLabel("Patient Profile", "நோயாளர் சுயவிவரம்")}</h2>
-        <div className="flex space-x-3">
-          <Button onClick={() => navigate('/dashboard')} variant="secondary">
-            {getBilingualLabel("Back to Dashboard", "டாஷ்போர்டுக்குத் திரும்பு")}
-          </Button>
-          <Button onClick={() => setIsDeleteConfirmationOpen(true)} variant="danger">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            {getBilingualLabel("Delete Patient", "நோயாளியை நீக்கு")}
-          </Button>
+    <PrintablePageWrapper pageTitle={pageTitle}>
+      <div className="container mx-auto p-4 md:p-6">
+        <div className="flex justify-between items-center mb-6 print:hidden">
+          <h2 className="text-3xl font-semibold text-slate-800">{getBilingualLabel("Patient Profile", "நோயாளர் சுயவிவரம்")}</h2>
+          <div className="flex space-x-3">
+            <Button onClick={() => navigate('/dashboard')} variant="secondary">
+              {getBilingualLabel("Back to Dashboard", "டாஷ்போர்டுக்குத் திரும்பு")}
+            </Button>
+            <Button onClick={() => setIsDeleteConfirmationOpen(true)} variant="danger">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              {getBilingualLabel("Delete Patient", "நோயாளியை நீக்கு")}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Patient Demographics */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Demographics", "புள்ளிவிவரங்கள்")}</h3>
-          <Button onClick={() => setIsEditPatientModalOpen(true)} variant="primary" size="sm">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            {getBilingualLabel("Edit", "திருத்து")}
-          </Button>
+        {/* Patient Demographics */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 patient-info page-break-inside-avoid">
+          <div className="flex justify-between items-center mb-4 patient-header">
+            <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Demographics", "புள்ளிவிவரங்கள்")}</h3>
+            <Button onClick={() => setIsEditPatientModalOpen(true)} variant="primary" size="sm" className="print:hidden">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              {getBilingualLabel("Edit", "திருத்து")}
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+            <div><p><strong>{getBilingualLabel("Name", "பெயர்")}:</strong> {patient.name}</p></div>
+            <div><p><strong>{getBilingualLabel("DOB", "பிறந்த தேதி")}:</strong> {patient.dob}</p></div>
+            <div><p><strong>{getBilingualLabel("Gender", "பால்")}:</strong> {patient.gender}</p></div>
+            <div><p><strong>{getBilingualLabel("Phone", "தொலைபேசி")}:</strong> {patient.phone}</p></div>
+            <div><p><strong>{getBilingualLabel("Email", "மின்னஞ்சல்")}:</strong> {patient.email}</p></div>
+            <div><p><strong>{getBilingualLabel("Address", "முகவரி")}:</strong> {patient.address}</p></div>
+            <div><p><strong>{getBilingualLabel("Emergency Contact", "அவசர தொடர்பு")}:</strong> {patient.emergencyContactName} ({patient.emergencyContactPhone})</p></div>
+            <div><p><strong>{getBilingualLabel("Preferred Language", "விருப்பமான மொழி")}:</strong> {patient.preferredLanguage}</p></div>
+            <div><p><strong>{getBilingualLabel("Preferred Contact", "விருப்பமான தொடர்பு")}:</strong> {patient.preferredContactMethod}</p></div>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
-          <div><p><strong>{getBilingualLabel("Name", "பெயர்")}:</strong> {patient.name}</p></div>
-          <div><p><strong>{getBilingualLabel("DOB", "பிறந்த தேதி")}:</strong> {patient.dob}</p></div>
-          <div><p><strong>{getBilingualLabel("Gender", "பால்")}:</strong> {patient.gender}</p></div>
-          <div><p><strong>{getBilingualLabel("Phone", "தொலைபேசி")}:</strong> {patient.phone}</p></div>
-          <div><p><strong>{getBilingualLabel("Email", "மின்னஞ்சல்")}:</strong> {patient.email}</p></div>
-          <div><p><strong>{getBilingualLabel("Address", "முகவரி")}:</strong> {patient.address}</p></div>
-          <div><p><strong>{getBilingualLabel("Emergency Contact", "அவசர தொடர்பு")}:</strong> {patient.emergencyContactName} ({patient.emergencyContactPhone})</p></div>
-          <div><p><strong>{getBilingualLabel("Preferred Language", "விருப்பமான மொழி")}:</strong> {patient.preferredLanguage}</p></div>
-          <div><p><strong>{getBilingualLabel("Preferred Contact", "விருப்பமான தொடர்பு")}:</strong> {patient.preferredContactMethod}</p></div>
-        </div>
-      </div>
 
-      {/* Medical History Section with CRUD */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}</h3>
-          <Button onClick={() => setIsAddMedicalHistoryModalOpen(true)} variant="primary" size="sm">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {getBilingualLabel("Add History", "வரலாற்றைச் சேர்")}
-          </Button>
-        </div>
-        {medicalHistory.length === 0 ? (
-          <p className="text-slate-600">{getBilingualLabel("No medical history recorded.", "மருத்துவ வரலாறு எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
-        ) : (
-          <div className="space-y-4">
-            {medicalHistory.map((entry) => (
-              <div key={entry.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p><strong>{getBilingualLabel("Condition", "நிலை")}:</strong> {entry.conditionName}</p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("Diagnosed on", "நோயறிதல் தேதி")}: {entry.diagnosisDate}</p>
-                    {entry.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {entry.notes}</p>}
-                  </div>
-                  <div className="flex space-x-2 ml-4">
-                    <Button
-                      onClick={() => setEditingMedicalHistory(entry)}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteMedicalHistory(entry.id)}
-                      variant="danger"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </Button>
+        {/* Medical History Section with CRUD */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 medical-section page-break-inside-avoid">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}</h3>
+            <Button onClick={() => setIsAddMedicalHistoryModalOpen(true)} variant="primary" size="sm" className="print:hidden">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              {getBilingualLabel("Add History", "வரலாற்றைச் சேர்")}
+            </Button>
+          </div>
+          {medicalHistory.length === 0 ? (
+            <p className="text-slate-600">{getBilingualLabel("No medical history recorded.", "மருத்துவ வரலாறு எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
+          ) : (
+            <div className="space-y-4">
+              {medicalHistory.map((entry) => (
+                <div key={entry.id} className="border-b border-slate-200 pb-4 last:border-b-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p><strong>{getBilingualLabel("Condition", "நிலை")}:</strong> {entry.conditionName}</p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("Diagnosed on", "நோயறிதல் தேதி")}: {entry.diagnosisDate}</p>
+                      {entry.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {entry.notes}</p>}
+                    </div>
+                    <div className="flex space-x-2 ml-4 print:hidden">
+                      <Button
+                        onClick={() => setEditingMedicalHistory(entry)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteMedicalHistory(entry.id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Medications Section with CRUD */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Medications", "மருந்துகள்")}</h3>
-          <Button onClick={() => setIsAddMedicationModalOpen(true)} variant="primary" size="sm">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {getBilingualLabel("Add Medication", "மருந்தைச் சேர்")}
-          </Button>
+              ))}
+            </div>
+          )}
         </div>
-        {medications.length === 0 ? (
-          <p className="text-slate-600">{getBilingualLabel("No medications recorded.", "மருந்துகள் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
-        ) : (
-          <div className="space-y-4">
-            {medications.map((med) => (
-              <div key={med.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p><strong>{getBilingualLabel("Name", "பெயர்")}:</strong> {med.medicationName}</p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("Dosage", "மருந்தளவு")}: {med.dosage}, {getBilingualLabel("Frequency", "அளவு")}: {med.frequency}</p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("Start Date", "தொடங்கிய தேதி")}: {med.startDate} {med.endDate && `- ${med.endDate}`}</p>
-                    {med.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {med.notes}</p>}
-                  </div>
-                  <div className="flex space-x-2 ml-4">
-                    <Button
-                      onClick={() => setEditingMedication(med)}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteMedication(med.id)}
-                      variant="danger"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </Button>
+
+        {/* Medications Section with CRUD */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 medical-section page-break-inside-avoid">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Medications", "மருந்துகள்")}</h3>
+            <Button onClick={() => setIsAddMedicationModalOpen(true)} variant="primary" size="sm" className="print:hidden">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              {getBilingualLabel("Add Medication", "மருந்தைச் சேர்")}
+            </Button>
+          </div>
+          {medications.length === 0 ? (
+            <p className="text-slate-600">{getBilingualLabel("No medications recorded.", "மருந்துகள் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
+          ) : (
+            <div className="space-y-4">
+              {medications.map((med) => (
+                <div key={med.id} className="border-b border-slate-200 pb-4 last:border-b-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p><strong>{getBilingualLabel("Name", "பெயர்")}:</strong> {med.medicationName}</p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("Dosage", "மருந்தளவு")}: {med.dosage}, {getBilingualLabel("Frequency", "அளவு")}: {med.frequency}</p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("Start Date", "தொடங்கிய தேதி")}: {med.startDate} {med.endDate && `- ${med.endDate}`}</p>
+                      {med.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {med.notes}</p>}
+                    </div>
+                    <div className="flex space-x-2 ml-4 print:hidden">
+                      <Button
+                        onClick={() => setEditingMedication(med)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteMedication(med.id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Allergies Section with CRUD */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Allergies", "ஒவ்வாமைகள்")}</h3>
-          <Button onClick={() => setIsAddAllergyModalOpen(true)} variant="primary" size="sm">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {getBilingualLabel("Add Allergy", "ஒவ்வாமையைச் சேர்")}
-          </Button>
+              ))}
+            </div>
+          )}
         </div>
-        {allergies.length === 0 ? (
-          <p className="text-slate-600">{getBilingualLabel("No allergies recorded.", "ஒவ்வாமைகள் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
-        ) : (
-          <div className="space-y-4">
-            {allergies.map((allergy) => (
-              <div key={allergy.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p><strong>{getBilingualLabel("Allergen", "ஒவ்வாமை")}:</strong> {allergy.allergenName}</p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("Reaction", "எதிர்வினை")}: {allergy.reaction}, {getBilingualLabel("Severity", "தீவிரம்")}: {allergy.severity}</p>
-                    {allergy.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {allergy.notes}</p>}
-                  </div>
-                  <div className="flex space-x-2 ml-4">
-                    <Button
-                      onClick={() => setEditingAllergy(allergy)}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteAllergy(allergy.id)}
-                      variant="danger"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </Button>
+
+        {/* Allergies Section with CRUD */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 medical-section page-break-inside-avoid">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Allergies", "ஒவ்வாமைகள்")}</h3>
+            <Button onClick={() => setIsAddAllergyModalOpen(true)} variant="primary" size="sm" className="print:hidden">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              {getBilingualLabel("Add Allergy", "ஒவ்வாமையைச் சேர்")}
+            </Button>
+          </div>
+          {allergies.length === 0 ? (
+            <p className="text-slate-600">{getBilingualLabel("No allergies recorded.", "ஒவ்வாமைகள் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
+          ) : (
+            <div className="space-y-4">
+              {allergies.map((allergy) => (
+                <div key={allergy.id} className="border-b border-slate-200 pb-4 last:border-b-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p><strong>{getBilingualLabel("Allergen", "ஒவ்வாமை")}:</strong> {allergy.allergenName}</p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("Reaction", "எதிர்வினை")}: {allergy.reaction}, {getBilingualLabel("Severity", "தீவிரம்")}: {allergy.severity}</p>
+                      {allergy.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {allergy.notes}</p>}
+                    </div>
+                    <div className="flex space-x-2 ml-4 print:hidden">
+                      <Button
+                        onClick={() => setEditingAllergy(allergy)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteAllergy(allergy.id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Insurance & Billing Section with CRUD */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Insurance & Billing", "காப்பீடு & பில்லிங்")}</h3>
-          <Button onClick={() => setIsAddInsuranceModalOpen(true)} variant="primary" size="sm">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {getBilingualLabel("Add Insurance", "காப்பீட்டைச் சேர்")}
-          </Button>
+              ))}
+            </div>
+          )}
         </div>
-        {insuranceBilling.length === 0 ? (
-          <p className="text-slate-600">{getBilingualLabel("No insurance information recorded.", "காப்பீட்டுத் தகவல் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
-        ) : (
-          <div className="space-y-4">
-            {insuranceBilling.map((ins) => (
-              <div key={ins.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p><strong>{getBilingualLabel("Provider", "வழங்குநர்")}:</strong> {ins.insuranceProvider}</p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("Policy No.", "பாலிசி எண்")}: {ins.policyNumber} {ins.isPrimary ? `(${getBilingualLabel("Primary", "முதன்மை")})` : ''}</p>
-                    {ins.groupNumber && <p className="text-sm text-slate-600">{getBilingualLabel("Group No.", "குழு எண்")}: {ins.groupNumber}</p>}
-                    {ins.billingNotes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {ins.billingNotes}</p>}
-                  </div>
-                  <div className="flex space-x-2 ml-4">
-                    <Button
-                      onClick={() => setEditingInsurance(ins)}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteInsurance(ins.id)}
-                      variant="danger"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </Button>
+
+        {/* Insurance & Billing Section with CRUD */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 medical-section page-break-inside-avoid">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Insurance & Billing", "காப்பீடு & பில்லிங்")}</h3>
+            <Button onClick={() => setIsAddInsuranceModalOpen(true)} variant="primary" size="sm" className="print:hidden">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              {getBilingualLabel("Add Insurance", "காப்பீட்டைச் சேர்")}
+            </Button>
+          </div>
+          {insuranceBilling.length === 0 ? (
+            <p className="text-slate-600">{getBilingualLabel("No insurance information recorded.", "காப்பீட்டுத் தகவல் எதுவும் பதிவு செய்யப்படவில்லை.")}</p>
+          ) : (
+            <div className="space-y-4">
+              {insuranceBilling.map((ins) => (
+                <div key={ins.id} className="border-b border-slate-200 pb-4 last:border-b-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p><strong>{getBilingualLabel("Provider", "வழங்குநர்")}:</strong> {ins.insuranceProvider}</p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("Policy No.", "பாலிசி எண்")}: {ins.policyNumber} {ins.isPrimary ? `(${getBilingualLabel("Primary", "முதன்மை")})` : ''}</p>
+                      {ins.groupNumber && <p className="text-sm text-slate-600">{getBilingualLabel("Group No.", "குழு எண்")}: {ins.groupNumber}</p>}
+                      {ins.billingNotes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {ins.billingNotes}</p>}
+                    </div>
+                    <div className="flex space-x-2 ml-4 print:hidden">
+                      <Button
+                        onClick={() => setEditingInsurance(ins)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteInsurance(ins.id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Documents Section with CRUD */}
-      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Documents", "ஆவணங்கள்")}</h3>
-          <Button onClick={() => setIsUploadDocumentModalOpen(true)} variant="primary" size="sm">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {getBilingualLabel("Upload Document", "ஆவணத்தைப் பதிவேற்று")}
-          </Button>
+              ))}
+            </div>
+          )}
         </div>
-        {documents.length === 0 ? (
-          <p className="text-slate-600">{getBilingualLabel("No documents uploaded.", "ஆவணங்கள் எதுவும் பதிவேற்றப்படவில்லை.")}</p>
-        ) : (
-          <div className="space-y-4">
-            {documents.map((doc) => (
-              <div key={doc.id} className="border-b border-slate-200 pb-4 last:border-b-0">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <p><strong>{getBilingualLabel("Type", "வகை")}:</strong> {doc.documentType}</p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("File", "கோப்பு")}: <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">{doc.fileName}</a></p>
-                    <p className="text-sm text-slate-600">{getBilingualLabel("Uploaded", "பதிவேற்றப்பட்டது")}: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
-                    {doc.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {doc.notes}</p>}
-                  </div>
-                  <div className="flex space-x-2 ml-4">
-                    <Button
-                      onClick={() => handleDeleteDocument(doc.id)}
-                      variant="danger"
-                      size="sm"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </Button>
+
+        {/* Documents Section with CRUD */}
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6 medical-section page-break-inside-avoid">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-sky-700">{getBilingualLabel("Documents", "ஆவணங்கள்")}</h3>
+            <Button onClick={() => setIsUploadDocumentModalOpen(true)} variant="primary" size="sm" className="print:hidden">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              {getBilingualLabel("Upload Document", "ஆவணத்தைப் பதிவேற்று")}
+            </Button>
+          </div>
+          {documents.length === 0 ? (
+            <p className="text-slate-600">{getBilingualLabel("No documents uploaded.", "ஆவணங்கள் எதுவும் பதிவேற்றப்படவில்லை.")}</p>
+          ) : (
+            <div className="space-y-4">
+              {documents.map((doc) => (
+                <div key={doc.id} className="border-b border-slate-200 pb-4 last:border-b-0 document-item">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p><strong>{getBilingualLabel("Type", "வகை")}:</strong> {doc.documentType}</p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("File", "கோப்பு")}: <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">{doc.fileName}</a></p>
+                      <p className="text-sm text-slate-600">{getBilingualLabel("Uploaded", "பதிவேற்றப்பட்டது")}: {new Date(doc.uploadedAt).toLocaleDateString()}</p>
+                      {doc.notes && <p className="text-sm text-slate-600">{getBilingualLabel("Notes", "குறிப்புகள்")}: {doc.notes}</p>}
+                    </div>
+                    <div className="flex space-x-2 ml-4 print:hidden">
+                      <Button
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* Audit Trail Component */}
-      <PatientAuditTrail patientId={patientId!} />
+        {/* Audit Trail Component */}
+        <div className="page-break-before">
+          <PatientAuditTrail patientId={patientId!} />
+        </div>
 
-      {/* Modals */}
-      <Modal isOpen={isEditPatientModalOpen} onClose={() => setIsEditPatientModalOpen(false)} title={getBilingualLabel("Edit Patient Info", "நோயாளர் தகவலைத் திருத்து")}>
-        {patient && (
-          <PatientForm
-            patient={patient}
-            onSubmit={handleUpdatePatient}
-            onCancel={() => setIsEditPatientModalOpen(false)}
-          />
-        )}
-      </Modal>
-
-      <Modal isOpen={isAddMedicalHistoryModalOpen} onClose={() => setIsAddMedicalHistoryModalOpen(false)} title={getBilingualLabel("Add Medical History", "மருத்துவ வரலாறைச் சேர்")}>
-        <MedicalHistoryForm onSubmit={handleAddMedicalHistory} onCancel={() => setIsAddMedicalHistoryModalOpen(false)} />
-      </Modal>
-
-      {editingMedicalHistory && (
-        <Modal isOpen={true} onClose={() => setEditingMedicalHistory(null)} title={getBilingualLabel("Edit Medical History", "மருத்துவ வரலாற்றைத் திருத்து")}>
-          <MedicalHistoryForm
-            medicalHistory={editingMedicalHistory}
-            onSubmit={handleUpdateMedicalHistory}
-            onCancel={() => setEditingMedicalHistory(null)}
-          />
+        {/* Modals */}
+        <Modal isOpen={isEditPatientModalOpen} onClose={() => setIsEditPatientModalOpen(false)} title={getBilingualLabel("Edit Patient Info", "நோயாளர் தகவலைத் திருத்து")}>
+          {patient && (
+            <PatientForm
+              patient={patient}
+              onSubmit={handleUpdatePatient}
+              onCancel={() => setIsEditPatientModalOpen(false)}
+            />
+          )}
         </Modal>
-      )}
 
-      <Modal isOpen={isAddMedicationModalOpen} onClose={() => setIsAddMedicationModalOpen(false)} title={getBilingualLabel("Add Medication", "மருந்தைச் சேர்")}>
-        <MedicationForm onSubmit={handleAddMedication} onCancel={() => setIsAddMedicationModalOpen(false)} />
-      </Modal>
-
-      {editingMedication && (
-        <Modal isOpen={true} onClose={() => setEditingMedication(null)} title={getBilingualLabel("Edit Medication", "மருந்தைத் திருத்து")}>
-          <MedicationForm
-            medication={editingMedication}
-            onSubmit={handleUpdateMedication}
-            onCancel={() => setEditingMedication(null)}
-          />
+        <Modal isOpen={isAddMedicalHistoryModalOpen} onClose={() => setIsAddMedicalHistoryModalOpen(false)} title={getBilingualLabel("Add Medical History", "மருத்துவ வரலாறைச் சேர்")}>
+          <MedicalHistoryForm onSubmit={handleAddMedicalHistory} onCancel={() => setIsAddMedicalHistoryModalOpen(false)} />
         </Modal>
-      )}
 
-      <Modal isOpen={isAddAllergyModalOpen} onClose={() => setIsAddAllergyModalOpen(false)} title={getBilingualLabel("Add Allergy", "ஒவ்வாமையைச் சேர்")}>
-        <AllergyForm onSubmit={handleAddAllergy} onCancel={() => setIsAddAllergyModalOpen(false)} allergySeverityOptions={allergySeverityOptions} />
-      </Modal>
+        {editingMedicalHistory && (
+          <Modal isOpen={true} onClose={() => setEditingMedicalHistory(null)} title={getBilingualLabel("Edit Medical History", "மருத்துவ வரலாற்றைத் திருத்து")}>
+            <MedicalHistoryForm
+              medicalHistory={editingMedicalHistory}
+              onSubmit={handleUpdateMedicalHistory}
+              onCancel={() => setEditingMedicalHistory(null)}
+            />
+          </Modal>
+        )}
 
-      {editingAllergy && (
-        <Modal isOpen={true} onClose={() => setEditingAllergy(null)} title={getBilingualLabel("Edit Allergy", "ஒவ்வாமையைத் திருத்து")}>
-          <AllergyForm
-            allergy={editingAllergy}
-            onSubmit={handleUpdateAllergy}
-            onCancel={() => setEditingAllergy(null)}
-            allergySeverityOptions={allergySeverityOptions}
-          />
+        <Modal isOpen={isAddMedicationModalOpen} onClose={() => setIsAddMedicationModalOpen(false)} title={getBilingualLabel("Add Medication", "மருந்தைச் சேர்")}>
+          <MedicationForm onSubmit={handleAddMedication} onCancel={() => setIsAddMedicationModalOpen(false)} />
         </Modal>
-      )}
 
-      <Modal isOpen={isAddInsuranceModalOpen} onClose={() => setIsAddInsuranceModalOpen(false)} title={getBilingualLabel("Add Insurance/Billing", "காப்பீடு/பில்லிங்கைச் சேர்")}>
-        <InsuranceBillingForm onSubmit={handleAddInsurance} onCancel={() => setIsAddInsuranceModalOpen(false)} />
-      </Modal>
+        {editingMedication && (
+          <Modal isOpen={true} onClose={() => setEditingMedication(null)} title={getBilingualLabel("Edit Medication", "மருந்தைத் திருத்து")}>
+            <MedicationForm
+              medication={editingMedication}
+              onSubmit={handleUpdateMedication}
+              onCancel={() => setEditingMedication(null)}
+            />
+          </Modal>
+        )}
 
-      {editingInsurance && (
-        <Modal isOpen={true} onClose={() => setEditingInsurance(null)} title={getBilingualLabel("Edit Insurance/Billing", "காப்பீடு/பில்லிங்கைத் திருத்து")}>
-          <InsuranceBillingForm
-            insuranceBilling={editingInsurance}
-            onSubmit={handleUpdateInsurance}
-            onCancel={() => setEditingInsurance(null)}
-          />
+        <Modal isOpen={isAddAllergyModalOpen} onClose={() => setIsAddAllergyModalOpen(false)} title={getBilingualLabel("Add Allergy", "ஒவ்வாமையைச் சேர்")}>
+          <AllergyForm onSubmit={handleAddAllergy} onCancel={() => setIsAddAllergyModalOpen(false)} allergySeverityOptions={allergySeverityOptions} />
         </Modal>
-      )}
 
-      <Modal isOpen={isUploadDocumentModalOpen} onClose={() => setIsUploadDocumentModalOpen(false)} title={getBilingualLabel("Upload Patient Document", "நோயாளர் ஆவணத்தைப் பதிவேற்று")}>
-        <DocumentUploadComponent onSubmit={handleUploadDocument} onCancel={() => setIsUploadDocumentModalOpen(false)} documentTypeOptions={documentTypeOptions} />
-      </Modal>
+        {editingAllergy && (
+          <Modal isOpen={true} onClose={() => setEditingAllergy(null)} title={getBilingualLabel("Edit Allergy", "ஒவ்வாமையைத் திருத்து")}>
+            <AllergyForm
+              allergy={editingAllergy}
+              onSubmit={handleUpdateAllergy}
+              onCancel={() => setEditingAllergy(null)}
+              allergySeverityOptions={allergySeverityOptions}
+            />
+          </Modal>
+        )}
 
-      {/* Delete Confirmation Modal */}
-      <PatientDeleteConfirmation
-        isOpen={isDeleteConfirmationOpen}
-        patient={patient}
-        onConfirm={handleDeletePatient}
-        onCancel={() => setIsDeleteConfirmationOpen(false)}
-      />
-    </div>
+        <Modal isOpen={isAddInsuranceModalOpen} onClose={() => setIsAddInsuranceModalOpen(false)} title={getBilingualLabel("Add Insurance/Billing", "காப்பீடு/பில்லிங்கைச் சேர்")}>
+          <InsuranceBillingForm onSubmit={handleAddInsurance} onCancel={() => setIsAddInsuranceModalOpen(false)} />
+        </Modal>
+
+        {editingInsurance && (
+          <Modal isOpen={true} onClose={() => setEditingInsurance(null)} title={getBilingualLabel("Edit Insurance/Billing", "காப்பீடு/பில்லிங்கைத் திருத்து")}>
+            <InsuranceBillingForm
+              insuranceBilling={editingInsurance}
+              onSubmit={handleUpdateInsurance}
+              onCancel={() => setEditingInsurance(null)}
+            />
+          </Modal>
+        )}
+
+        <Modal isOpen={isUploadDocumentModalOpen} onClose={() => setIsUploadDocumentModalOpen(false)} title={getBilingualLabel("Upload Patient Document", "நோயாளர் ஆவணத்தைப் பதிவேற்று")}>
+          <DocumentUploadComponent onSubmit={handleUploadDocument} onCancel={() => setIsUploadDocumentModalOpen(false)} documentTypeOptions={documentTypeOptions} />
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <PatientDeleteConfirmation
+          isOpen={isDeleteConfirmationOpen}
+          patient={patient}
+          onConfirm={handleDeletePatient}
+          onCancel={() => setIsDeleteConfirmationOpen(false)}
+        />
+      </div>
+    </PrintablePageWrapper>
   );
 };
 

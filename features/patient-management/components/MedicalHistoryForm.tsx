@@ -1,19 +1,20 @@
 // src/features/patient-management/components/MedicalHistoryForm.tsx
 
 import React, { useState } from 'react';
-import { NewDbMedicalHistory } from '../../../types'; // பாதை சரிபார்க்கவும்
+import { MedicalHistory, NewDbMedicalHistory, UpdateDbMedicalHistory } from '../../../types'; // பாதை சரிபார்க்கவும்
 import Button from '../../../components/shared/Button'; // சரி செய்யப்பட்ட பாதை
 import { formatDateToInput } from '../../../utils/dateHelpers'; // பாதை சரிபார்க்கவும்
 
 interface MedicalHistoryFormProps {
-  onSubmit: (data: NewDbMedicalHistory) => Promise<void>;
+  medicalHistory?: MedicalHistory;
+  onSubmit: (data: NewDbMedicalHistory | UpdateDbMedicalHistory) => Promise<void>;
   onCancel: () => void;
 }
 
-const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({ onSubmit, onCancel }) => {
-  const [diagnosisDate, setDiagnosisDate] = useState(formatDateToInput(new Date()));
-  const [conditionName, setConditionName] = useState('');
-  const [notes, setNotes] = useState('');
+const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({ medicalHistory, onSubmit, onCancel }) => {
+  const [diagnosisDate, setDiagnosisDate] = useState(medicalHistory?.diagnosisDate || formatDateToInput(new Date()));
+  const [conditionName, setConditionName] = useState(medicalHistory?.conditionName || '');
+  const [notes, setNotes] = useState(medicalHistory?.notes || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
@@ -68,7 +69,7 @@ const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({ onSubmit, onCan
           {getBilingualLabel("Cancel", "ரத்துசெய்")}
         </Button>
         <Button type="submit" variant="primary" isLoading={isLoading}>
-          {getBilingualLabel("Add History", "வரலாற்றைச் சேர்")}
+          {medicalHistory ? getBilingualLabel("Update History", "வரலாற்றைப் புதுப்பிக்கவும்") : getBilingualLabel("Add History", "வரலாற்றைச் சேர்")}
         </Button>
       </div>
     </form>

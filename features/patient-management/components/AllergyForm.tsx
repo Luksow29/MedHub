@@ -1,20 +1,21 @@
 // src/features/patient-management/components/AllergyForm.tsx
 
 import React, { useState } from 'react';
-import { NewDbAllergy } from '../../../types'; // பாதை சரிபார்க்கவும்
+import { Allergy, NewDbAllergy, UpdateDbAllergy } from '../../../types'; // பாதை சரிபார்க்கவும்
 import Button from '../../../components/shared/Button'; // சரி செய்யப்பட்ட பாதை
 
 interface AllergyFormProps {
-  onSubmit: (data: NewDbAllergy) => Promise<void>;
+  allergy?: Allergy;
+  onSubmit: (data: NewDbAllergy | UpdateDbAllergy) => Promise<void>;
   onCancel: () => void;
   allergySeverityOptions: { value: string; label: string }[]; // Bilingual options passed as prop
 }
 
-const AllergyForm: React.FC<AllergyFormProps> = ({ onSubmit, onCancel, allergySeverityOptions }) => {
-  const [allergenName, setAllergenName] = useState('');
-  const [reaction, setReaction] = useState('');
-  const [severity, setSeverity] = useState(allergySeverityOptions[0]?.value || '');
-  const [notes, setNotes] = useState('');
+const AllergyForm: React.FC<AllergyFormProps> = ({ allergy, onSubmit, onCancel, allergySeverityOptions }) => {
+  const [allergenName, setAllergenName] = useState(allergy?.allergenName || '');
+  const [reaction, setReaction] = useState(allergy?.reaction || '');
+  const [severity, setSeverity] = useState(allergy?.severity || allergySeverityOptions[0]?.value || '');
+  const [notes, setNotes] = useState(allergy?.notes || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
@@ -82,7 +83,7 @@ const AllergyForm: React.FC<AllergyFormProps> = ({ onSubmit, onCancel, allergySe
           {getBilingualLabel("Cancel", "ரத்துசெய்")}
         </Button>
         <Button type="submit" variant="primary" isLoading={isLoading}>
-          {getBilingualLabel("Add Allergy", "ஒவ்வாமையைச் சேர்")}
+          {allergy ? getBilingualLabel("Update Allergy", "ஒவ்வாமையைப் புதுப்பிக்கவும்") : getBilingualLabel("Add Allergy", "ஒவ்வாமையைச் சேர்")}
         </Button>
       </div>
     </form>

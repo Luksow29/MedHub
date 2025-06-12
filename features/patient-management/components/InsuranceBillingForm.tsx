@@ -1,20 +1,21 @@
 // src/features/patient-management/components/InsuranceBillingForm.tsx
 
 import React, { useState } from 'react';
-import { NewDbInsuranceBilling } from '../../../types'; // பாதை சரிபார்க்கவும்
+import { InsuranceBilling, NewDbInsuranceBilling, UpdateDbInsuranceBilling } from '../../../types'; // பாதை சரிபார்க்கவும்
 import Button from '../../../components/shared/Button'; // சரி செய்யப்பட்ட பாதை
 
 interface InsuranceBillingFormProps {
-  onSubmit: (data: NewDbInsuranceBilling) => Promise<void>;
+  insuranceBilling?: InsuranceBilling;
+  onSubmit: (data: NewDbInsuranceBilling | UpdateDbInsuranceBilling) => Promise<void>;
   onCancel: () => void;
 }
 
-const InsuranceBillingForm: React.FC<InsuranceBillingFormProps> = ({ onSubmit, onCancel }) => {
-  const [insuranceProvider, setInsuranceProvider] = useState('');
-  const [policyNumber, setPolicyNumber] = useState('');
-  const [groupNumber, setGroupNumber] = useState('');
-  const [isPrimary, setIsPrimary] = useState(true);
-  const [billingNotes, setBillingNotes] = useState('');
+const InsuranceBillingForm: React.FC<InsuranceBillingFormProps> = ({ insuranceBilling, onSubmit, onCancel }) => {
+  const [insuranceProvider, setInsuranceProvider] = useState(insuranceBilling?.insuranceProvider || '');
+  const [policyNumber, setPolicyNumber] = useState(insuranceBilling?.policyNumber || '');
+  const [groupNumber, setGroupNumber] = useState(insuranceBilling?.groupNumber || '');
+  const [isPrimary, setIsPrimary] = useState(insuranceBilling?.isPrimary ?? true);
+  const [billingNotes, setBillingNotes] = useState(insuranceBilling?.billingNotes || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
@@ -91,7 +92,7 @@ const InsuranceBillingForm: React.FC<InsuranceBillingFormProps> = ({ onSubmit, o
           {getBilingualLabel("Cancel", "ரத்துசெய்")}
         </Button>
         <Button type="submit" variant="primary" isLoading={isLoading}>
-          {getBilingualLabel("Add Insurance Info", "காப்பீட்டு தகவலைச் சேர்")}
+          {insuranceBilling ? getBilingualLabel("Update Insurance Info", "காப்பீட்டு தகவலைப் புதுப்பிக்கவும்") : getBilingualLabel("Add Insurance Info", "காப்பீட்டு தகவலைச் சேர்")}
         </Button>
       </div>
     </form>
