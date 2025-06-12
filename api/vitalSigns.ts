@@ -18,7 +18,7 @@ const mapDbVitalSignToClient = (dbVitalSign: DbVitalSigns): VitalSign => ({
   consultationId: dbVitalSign.consultation_id,
   patientId: dbVitalSign.patient_id,
   // Ensure recorded_at is handled, as it might be null in DbVitalSigns if it's omitted in NewDbVitalSigns
-  recordedAt: dbVitalSign.created_at, // Using created_at for recordedAt as per previous patterns
+  recordedAt: dbVitalSign.created_at, // `recorded_at` க்கு பதிலாக `created_at` ஐப் பயன்படுத்துகிறோம்
   temperature: dbVitalSign.temperature,
   temperatureUnit: dbVitalSign.temperature_unit,
   heartRate: dbVitalSign.heart_rate,
@@ -47,7 +47,7 @@ export const getVitalSignsByConsultationId = async (consultationId: string, user
     .eq('consultation_id', consultationId)
     .eq('user_id', userId)
     .eq('is_deleted', false)
-    .order('recorded_at', { ascending: false }) // சமீபத்திய பதிவை முதலில் பெற
+    .order('created_at', { ascending: false }) // `recorded_at` க்கு பதிலாக `created_at` ஐப் பயன்படுத்துகிறோம்
     .limit(1); // ஒரே ஒரு வரிசையை மட்டும் எடுக்க
 
   if (error) {
@@ -75,7 +75,7 @@ export const getVitalSignsByPatientId = async (patientId: string, userId: string
     .eq('patient_id', patientId)
     .eq('user_id', userId)
     .eq('is_deleted', false)
-    .order('created_at', { ascending: false }); // சமீபத்திய பதிவை முதலில் பெற
+    .order('created_at', { ascending: false }); // `recorded_at` க்கு பதிலாக `created_at` ஐப் பயன்படுத்துகிறோம்
 
   if (error) {
     console.error('Error fetching vital signs history for patient:', error);
@@ -237,7 +237,7 @@ export const getOrCreateVitalSigns = async (
       const newVitalSignsData: NewDbVitalSigns = {
         patient_id: patientId,
         consultation_id: consultationId,
-        recorded_at: new Date().toISOString(), // VitalSignsForm இல் இருந்து அனுப்பப்படும்.
+        // recorded_at: new Date().toISOString(), // இது DbVitalSigns இல் இருந்து நீக்கப்பட்டது
         height: recentVitalSigns?.height || null,
         height_unit: recentVitalSigns?.height_unit || HeightUnit.CM, // Enum மதிப்புகளைப் பயன்படுத்துகிறோம்
         weight: recentVitalSigns?.weight || null,
