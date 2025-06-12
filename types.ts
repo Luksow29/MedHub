@@ -7,6 +7,30 @@ export enum ReminderMethod {
   NONE = 'None',
 }
 
+export enum AppointmentStatus {
+  SCHEDULED = 'scheduled',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
+  NO_SHOW = 'no_show',
+  RESCHEDULED = 'rescheduled',
+}
+
+export enum RecurrencePattern {
+  NONE = 'none',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  CUSTOM = 'custom',
+}
+
+export enum WaitlistStatus {
+  ACTIVE = 'active',
+  NOTIFIED = 'notified',
+  CONVERTED = 'converted',
+  CANCELLED = 'cancelled',
+}
+
 // UI Views
 export enum View {
   AUTH = 'AUTH',
@@ -14,32 +38,30 @@ export enum View {
 }
 
 // --- Database-mirroring Types (snake_case) ---
-// இந்த இடைமுகங்கள் உங்கள் சுபாபேஸ் அட்டவணை வரிசைகளின் சரியான கட்டமைப்பைக் குறிக்கின்றன.
-// இவை தரவுத்தளத்தின் காலம் பெயர்களுடன் சரியாக பொருந்த வேண்டும் (snake_case).
 export interface DbPatient {
   id: string;
-  user_id: string; // தரவுத்தளத்தில் NOT NULL
+  user_id: string;
   name: string;
-  dob: string | null; // DB date, Optional
-  gender: 'ஆண்' | 'பெண்' | 'மற்றவை' | 'குறிப்பிடவில்லை' | null; // DB text, Optional
-  contact_phone: string; // DB text
-  contact_email: string | null; // DB text, Optional
-  address: string | null; // DB text, Optional
-  emergency_contact_name: string | null; // DB text, Optional
-  emergency_contact_phone: string | null; // DB text, Optional
-  preferred_language: string | null; // DB text, Optional, Default 'English'
-  preferred_contact_method: ReminderMethod; // DB text
-  created_at: string; // DB timestampz
-  updated_at: string; // DB timestampz
+  dob: string | null;
+  gender: 'ஆண்' | 'பெண்' | 'மற்றவை' | 'குறிப்பிடவில்லை' | null;
+  contact_phone: string;
+  contact_email: string | null;
+  address: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  preferred_language: string | null;
+  preferred_contact_method: ReminderMethod;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DbMedicalHistory {
   id: string;
   patient_id: string;
   user_id: string;
-  diagnosis_date: string; // DB date
-  condition_name: string; // DB text
-  notes: string | null; // DB text, Optional
+  diagnosis_date: string;
+  condition_name: string;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,12 +70,12 @@ export interface DbMedication {
   id: string;
   patient_id: string;
   user_id: string;
-  medication_name: string; // DB text
-  dosage: string | null; // DB text, Optional
-  frequency: string | null; // DB text, Optional
-  start_date: string | null; // DB date, Optional
-  end_date: string | null;   // DB date, Optional
-  notes: string | null; // DB text, Optional
+  medication_name: string;
+  dosage: string | null;
+  frequency: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -62,10 +84,10 @@ export interface DbAllergy {
   id: string;
   patient_id: string;
   user_id: string;
-  allergen_name: string; // DB text
-  reaction: string | null; // DB text, Optional
-  severity: 'லேசான' | 'மிதமான' | 'கடுமையான' | null; // DB text, Optional
-  notes: string | null; // DB text, Optional
+  allergen_name: string;
+  reaction: string | null;
+  severity: 'லேசான' | 'மிதமான' | 'கடுமையான' | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,11 +96,11 @@ export interface DbInsuranceBilling {
   id: string;
   patient_id: string;
   user_id: string;
-  insurance_provider: string; // DB text
-  policy_number: string; // DB text
-  group_number: string | null; // DB text, Optional
-  is_primary: boolean; // DB boolean
-  billing_notes: string | null; // DB text, Optional
+  insurance_provider: string;
+  policy_number: string;
+  group_number: string | null;
+  is_primary: boolean;
+  billing_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -87,11 +109,11 @@ export interface DbPatientDocument {
   id: string;
   patient_id: string;
   user_id: string;
-  document_type: string; // DB text
-  file_name: string; // DB text
-  file_path: string; // DB text
-  notes: string | null; // DB text, Optional
-  uploaded_at: string; // DB timestampz
+  document_type: string;
+  file_name: string;
+  file_path: string;
+  notes: string | null;
+  uploaded_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -102,26 +124,64 @@ export interface DbAppointment {
   patient_id: string;
   date: string;
   time: string;
+  duration: number; // in minutes
   reason: string;
+  service_type: string | null;
+  status: AppointmentStatus;
   reminder_sent: boolean;
   reminder_sent_at: string | null;
   reminder_method_used: ReminderMethod | null;
+  notes: string | null;
+  // Recurring appointment fields
+  is_recurring: boolean;
+  recurrence_pattern: RecurrencePattern;
+  recurrence_interval: number; // e.g., every 2 weeks
+  recurrence_end_date: string | null;
+  recurrence_count: number | null;
+  parent_appointment_id: string | null; // for recurring series
   created_at: string;
   updated_at: string;
 }
 
+export interface DbWaitlistEntry {
+  id: string;
+  user_id: string;
+  patient_id: string;
+  preferred_date: string | null;
+  preferred_time: string | null;
+  service_type: string | null;
+  reason: string;
+  priority: number; // 1 = highest priority
+  status: WaitlistStatus;
+  notes: string | null;
+  notified_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbTimeSlot {
+  id: string;
+  user_id: string;
+  day_of_week: number; // 0 = Sunday, 1 = Monday, etc.
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+  buffer_time: number; // minutes between appointments
+  max_appointments: number;
+  created_at: string;
+  updated_at: string;
+}
 
 // --- Client-Side Types (camelCase) ---
-// இந்த இடைமுகங்கள் உங்கள் React கூறுகளில் பயன்படுத்தப்படும் தரவின் கட்டமைப்பைக் குறிக்கின்றன.
-// இவை தரவுத்தளத்திலிருந்து பெறும் தரவை மேப் செய்த பிறகு அல்லது UI இல் உள்ளிட்டு அனுப்பும் போது பயன்படுத்தப்படும்.
 export interface Patient {
   id: string;
   userId: string;
   name: string;
   dob: string | null;
   gender: 'ஆண்' | 'பெண்' | 'மற்றவை' | 'குறிப்பிடவில்லை' | null;
-  phone: string; // Mapped from contact_phone
-  email: string | null; // Mapped from contact_email
+  phone: string;
+  email: string | null;
   address: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
@@ -200,25 +260,81 @@ export interface Appointment {
   patientId: string;
   date: string;
   time: string;
+  duration: number;
   reason: string;
+  serviceType: string | null;
+  status: AppointmentStatus;
   reminderSent: boolean;
   reminderSentAt: string | null;
   reminderMethodUsed: ReminderMethod | null;
+  notes: string | null;
+  // Recurring appointment fields
+  isRecurring: boolean;
+  recurrencePattern: RecurrencePattern;
+  recurrenceInterval: number;
+  recurrenceEndDate: string | null;
+  recurrenceCount: number | null;
+  parentAppointmentId: string | null;
   createdAt: string;
   updatedAt: string;
-  // இந்த புலங்கள் 'patients' அட்டவணையுடன் நீங்கள் இணைக்கும்போது நிரப்பப்படும்.
+  // Joined fields
   patientName?: string;
   patientPhoneNumber?: string;
   patientEmail?: string;
   patientPreferredContactMethod?: ReminderMethod;
 }
 
+export interface WaitlistEntry {
+  id: string;
+  userId: string;
+  patientId: string;
+  preferredDate: string | null;
+  preferredTime: string | null;
+  serviceType: string | null;
+  reason: string;
+  priority: number;
+  status: WaitlistStatus;
+  notes: string | null;
+  notifiedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  patientName?: string;
+  patientPhone?: string;
+  patientEmail?: string;
+}
 
-// --- Types for Data Submitted to Supabase (Omit DB-generated fields) ---
-// சுபாபேஸுக்கு தரவை அனுப்பும்போது (எ.கா., insert/update), நீங்கள் அதை snake_case இல் அனுப்ப வேண்டும்,
-// ஆனால் சுபாபேஸ் தானாகவே உருவாக்கும் புலங்களை (id, created_at, updated_at) தவிர்க்க வேண்டும்.
-// 'user_id' பின்தள லாஜிக்கில் சேர்க்கப்படும்.
+export interface TimeSlot {
+  id: string;
+  userId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  bufferTime: number;
+  maxAppointments: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  allDay?: boolean;
+  resource?: Appointment;
+  className?: string;
+}
+
+export interface ConflictCheck {
+  hasConflict: boolean;
+  conflictingAppointments: Appointment[];
+  suggestedTimes: string[];
+}
+
+// --- Types for Data Submitted to Supabase ---
 export type NewDbPatient = Omit<DbPatient, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
 export type UpdateDbPatient = Partial<Omit<DbPatient, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
@@ -234,9 +350,13 @@ export type UpdateDbAllergy = Partial<Omit<DbAllergy, 'id' | 'created_at' | 'upd
 export type NewDbInsuranceBilling = Omit<DbInsuranceBilling, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
 export type UpdateDbInsuranceBilling = Partial<Omit<DbInsuranceBilling, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
-// Document upload க்கு, file_name, file_path, uploaded_at இவை UI இல் இருந்து நேரடியாக வராது
 export type NewDbPatientDocument = Omit<DbPatientDocument, 'id' | 'created_at' | 'updated_at' | 'uploaded_at' | 'user_id' | 'file_name' | 'file_path'>;
-// UpdateDbPatientDocument பொதுவாக தேவையில்லை, ஏனெனில் ஆவணங்கள் பொதுவாக புதுப்பிக்கப்படுவதில்லை, ஆனால் சேர்க்கப்பட்டு நீக்கப்படுகின்றன.
 
-export type NewDbAppointment = Omit<DbAppointment, 'id' | 'created_at' | 'updated_at' | 'reminder_sent' | 'reminder_sent_at' | 'reminder_method_used' | 'user_id'>;
+export type NewDbAppointment = Omit<DbAppointment, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
 export type UpdateDbAppointment = Partial<Omit<DbAppointment, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
+
+export type NewDbWaitlistEntry = Omit<DbWaitlistEntry, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
+export type UpdateDbWaitlistEntry = Partial<Omit<DbWaitlistEntry, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
+
+export type NewDbTimeSlot = Omit<DbTimeSlot, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
+export type UpdateDbTimeSlot = Partial<Omit<DbTimeSlot, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
