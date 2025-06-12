@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
-import { supabase } from './lib/supabase'; // ரூட் லெவலில் இருந்து lib/supabase
+import { supabase } from './lib/supabase';
 
-// இறக்குமதி வழிகள் சரிசெய்யப்பட்டுள்ளன (அனைத்தும் ரூட் லெவலில் இருந்து)
+// Import enhanced components instead of basic ones
 import AuthPage from './components/AuthPage';
-import DashboardPage from './components/DashboardPage';
-import PatientDetailsPage from './features/patient-management/components/PatientDetailsPage';
+import DashboardPageEnhanced from './components/DashboardPageEnhanced';
+import EnhancedPatientDetailsPage from './features/patient-management/components/EnhancedPatientDetailsPage';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<User | null>(null);
@@ -57,9 +57,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<DashboardPage user={session} onLogout={handleLogout} />} />
-        <Route path="/dashboard" element={<DashboardPage user={session} onLogout={handleLogout} />} />
-        <Route path="/patient/:patientId" element={<PatientDetailsPage />} />
+        <Route path="/" element={<DashboardPageEnhanced user={session} onLogout={handleLogout} />} />
+        <Route path="/dashboard" element={<DashboardPageEnhanced user={session} onLogout={handleLogout} />} />
+        <Route path="/patient/:patientId" element={<EnhancedPatientDetailsPage />} />
       </Routes>
     </Router>
   );
