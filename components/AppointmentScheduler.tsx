@@ -101,10 +101,10 @@ const AppointmentScheduler: React.FC<AppointmentSchedulerProps> = ({
   const checkForConflicts = async () => {
     try {
       const { data, error } = await AppointmentAPI.checkAppointmentConflicts(
+        userId,
         formData.date,
         formData.time,
-        formData.duration,
-        userId
+        formData.duration
       );
 
       if (error) throw error;

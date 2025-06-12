@@ -157,10 +157,10 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
       
       // Check for conflicts
       const { data: conflicts, error: conflictError } = await AppointmentAPI.checkAppointmentConflicts(
+        userId,
         newDate,
         newTime,
         selectedAppointment.duration,
-        userId,
         selectedAppointment.id
       );
 
