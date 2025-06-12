@@ -43,6 +43,30 @@ export enum View {
   DASHBOARD = 'DASHBOARD',
 }
 
+// Add missing enums for consultations
+export enum ConsultationStatus {
+  SCHEDULED = 'scheduled',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  NO_SHOW = 'no_show'
+}
+
+export enum HeightUnit {
+  CM = 'cm',
+  FEET_INCHES = 'ft_in'
+}
+
+export enum WeightUnit {
+  KG = 'kg',
+  LB = 'lb'
+}
+
+export enum TemperatureUnit {
+  CELSIUS = 'celsius',
+  FAHRENHEIT = 'fahrenheit'
+}
+
 // --- Database-mirroring Types (snake_case) ---
 // இந்த இடைமுகங்கள் உங்கள் சுபாபேஸ் அட்டவணை வரிசைகளின் சரியான கட்டமைப்பைக் குறிக்கின்றன.
 // இவை தரவுத்தளத்தின் காலம் பெயர்களுடன் சரியாக பொருந்த வேண்டும் (snake_case).
@@ -146,6 +170,45 @@ export interface DbAppointment {
   reminder_sent: boolean;
   reminder_sent_at: string | null;
   reminder_method_used: ReminderMethod | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Add consultation database interface
+export interface DbConsultation {
+  id: string;
+  user_id: string;
+  patient_id: string;
+  appointment_id: string | null;
+  date: string;
+  chief_complaint: string;
+  status: ConsultationStatus;
+  diagnosis: string | null;
+  treatment_plan: string | null;
+  follow_up_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Add vital signs database interface
+export interface DbVitalSigns {
+  id: string;
+  consultation_id: string;
+  user_id: string;
+  patient_id: string;
+  temperature: number | null;
+  temperature_unit: TemperatureUnit;
+  heart_rate: number | null;
+  respiratory_rate: number | null;
+  blood_pressure_systolic: number | null;
+  blood_pressure_diastolic: number | null;
+  height: number | null;
+  height_unit: HeightUnit;
+  weight: number | null;
+  weight_unit: WeightUnit;
+  bmi: number | null;
+  oxygen_saturation: number | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -304,6 +367,47 @@ export interface Appointment {
   patientPreferredContactMethod?: ReminderMethod;
 }
 
+// Add Consultation interface
+export interface Consultation {
+  id: string;
+  userId: string;
+  patientId: string;
+  appointmentId: string | null;
+  date: string;
+  chiefComplaint: string;
+  status: ConsultationStatus;
+  diagnosis: string | null;
+  treatmentPlan: string | null;
+  followUpNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Join fields
+  patientName?: string;
+}
+
+// Add VitalSigns interface
+export interface VitalSigns {
+  id: string;
+  consultationId: string;
+  userId: string;
+  patientId: string;
+  temperature: number | null;
+  temperatureUnit: TemperatureUnit;
+  heartRate: number | null;
+  respiratoryRate: number | null;
+  bloodPressureSystolic: number | null;
+  bloodPressureDiastolic: number | null;
+  height: number | null;
+  heightUnit: HeightUnit;
+  weight: number | null;
+  weightUnit: WeightUnit;
+  bmi: number | null;
+  oxygenSaturation: number | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface WaitlistEntry {
   id: string;
   userId: string;
@@ -387,6 +491,14 @@ export type UpdateDbTimeSlot = Partial<Omit<DbTimeSlot, 'id' | 'created_at' | 'u
 export type NewDbAppointmentConflict = Omit<DbAppointmentConflict, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'resolved' | 'resolution_notes'>;
 export type UpdateDbAppointmentConflict = Partial<Omit<DbAppointmentConflict, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
+// Add consultation types
+export type NewDbConsultation = Omit<DbConsultation, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
+export type UpdateDbConsultation = Partial<Omit<DbConsultation, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
+
+// Add vital signs types
+export type NewDbVitalSigns = Omit<DbVitalSigns, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
+export type UpdateDbVitalSigns = Partial<Omit<DbVitalSigns, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
+
 // Calendar view types
 export interface CalendarEvent {
   id: string;
@@ -394,7 +506,7 @@ export interface CalendarEvent {
   start: Date;
   end: Date;
   resource?: any;
-  appointment?: Appointment;
+  className?: string;
 }
 
 export interface AvailableTimeSlot {
@@ -403,9 +515,8 @@ export interface AvailableTimeSlot {
   available: boolean;
 }
 
-export interface ConflictResolution {
-  conflictId: string;
-  resolution: 'reschedule' | 'cancel' | 'override';
-  newDateTime?: { date: string; time: string };
-  notes?: string;
+export interface ConflictCheck {
+  hasConflict: boolean;
+  conflictingAppointments: any[];
+  suggestedTimes: string[];
 }
