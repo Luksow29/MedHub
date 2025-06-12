@@ -81,7 +81,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
         // விரிவான மருத்துவ பதிவுகள் காட்சி
         <>
           {/* பிரிண்ட் செய்யப்பட வேண்டிய உள்ளடக்கத்தை மூடும் PrintablePageWrapper */}
-          <PrintablePageWrapper patient={selectedPatient} contentId="printable-medical-records">
+          <PrintablePageWrapper patient={selectedPatient} contentId="printable-medical-records-content"> {/* contentId இங்கு மாற்றப்பட்டுள்ளது */}
             {patientDataError ? (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <span className="block sm:inline">{patientDataError.message || getBilingualLabel("Error loading medical records.", "மருத்துவ பதிவுகளை ஏற்றுவதில் பிழை.")}</span>
@@ -176,7 +176,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
               {getBilingualLabel("Back to Search", "தேடலுக்குத் திரும்பு")}
             </Button>
             {selectedPatient && (
-              <PrintExportButton targetId="printable-medical-records-content" filename={`MedicalRecords-${selectedPatient.name}.pdf`} /> {/* ID மாற்றப்பட்டுள்ளது */}
+              <PrintExportButton targetId="printable-medical-records-content" filename={`MedicalRecords-${selectedPatient.name}.pdf`} /> 
             )}
           </div>
         </>
