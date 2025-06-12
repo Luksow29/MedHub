@@ -19,7 +19,7 @@ import WaitlistPage from './pages/appointments/WaitlistPage';
 import PatientDirectoryPage from './pages/patients/PatientDirectoryPage';
 import PatientSearchPage from './pages/patients/PatientSearchPage';
 import MedicalRecordsPage from './pages/patients/MedicalRecordsPage.tsx';
-import PatientDetailsPage from './features/patient-management/components/PatientDetailsPage';
+import EnhancedPatientDetailsPage from './features/patient-management/components/EnhancedPatientDetailsPage';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<User | null>(null);
@@ -83,7 +83,7 @@ const App: React.FC = () => {
         <Route path="/patients/directory" element={<PatientDirectoryPage user={session} onLogout={handleLogout} />} />
         <Route path="/patients/search" element={<PatientSearchPage user={session} onLogout={handleLogout} />} />
         <Route path="/patients/records" element={<MedicalRecordsPage user={session} onLogout={handleLogout} />} />
-        <Route path="/patient/:patientId" element={<PatientDetailsPage />} />
+        <Route path="/patient/:patientId" element={<EnhancedPatientDetailsPage />} />
       </Routes>
     </Router>
   );
