@@ -33,9 +33,13 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
   }, []);
 
   // நோயாளி தேர்ந்தெடுக்கப்படும்போது விரிவான நோயாளி தரவை எடுக்கவும்
-  // selectedPatient.id இருக்கும்போது மட்டுமே usePatientData ஹூக்கை அழைக்கவும்
+  // usePatientData ஹூக் அதன் டேட்டாவை நேரடியாக வழங்குகிறது, patientData ஆப்ஜெக்ட் மூலம் அல்ல
   const {
-    patientData,
+    patient, // directly destructured
+    medicalHistory, // directly destructured
+    medications, // directly destructured
+    allergies, // directly destructured
+    documents, // directly destructured
     isLoading: isPatientDataLoading,
     error: patientDataError
   } = usePatientData(selectedPatient?.id || '');
@@ -63,7 +67,7 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
       ]}
       isLoading={isPatientDataLoading && selectedPatient !== null} // நோயாளி தேர்ந்தெடுக்கப்பட்டால் மட்டுமே சுழலியை காட்டு
     >
-      {/* பக்கத் தலைப்பு */}
+      {/* பக்கத் தலைப்பு - அச்சிடும்போது மறைக்கப்படும் */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 print:hidden">
         <h2 className="text-3xl font-semibold text-slate-800">
           {getBilingualLabel("Medical Records", "மருத்துவ பதிவுகள்")}
@@ -72,31 +76,34 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
 
       {/* நிபந்தனைக்குட்பட்ட ரெண்டரிங்: நோயாளி தேடலைக் காட்டு அல்லது மருத்துவ பதிவுகளைக் காட்டு */}
       {!selectedPatient ? (
-        // நோயாளி தேடல் தொகுதி
-        <PatientSearchComponent
-          showSelectButton={true}
-          onPatientSelect={handlePatientSelect}
-        />
+        // நோயாளி தேடல் தொகுதி - அச்சிடும்போது மறைக்கப்படும்
+        <div className="print:hidden">
+          <PatientSearchComponent
+            showSelectButton={true}
+            onPatientSelect={handlePatientSelect}
+          />
+        </div>
       ) : (
         // விரிவான மருத்துவ பதிவுகள் காட்சி
         <>
           {/* பிரிண்ட் செய்யப்பட வேண்டிய உள்ளடக்கத்தை மூடும் PrintablePageWrapper */}
-          <PrintablePageWrapper patient={selectedPatient} contentId="printable-medical-records-content"> {/* contentId இங்கு மாற்றப்பட்டுள்ளது */}
+          {/* pageTitle மற்றும் filename அச்சிடும் பொத்தானுக்கு அனுப்பப்படுகிறது */}
+          <PrintablePageWrapper patient={selectedPatient} contentId="printable-medical-records-content">
             {patientDataError ? (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <span className="block sm:inline">{patientDataError.message || getBilingualLabel("Error loading medical records.", "மருத்துவ பதிவுகளை ஏற்றுவதில் பிழை.")}</span>
               </div>
             ) : (
-              <div id="printable-medical-records-content" className="space-y-6"> {/* உள்ளடக்கத்திற்கான புதிய ID */}
+              <div id="printable-medical-records-content" className="space-y-6">
                 {/* மருத்துவ வரலாறு பிரிவு */}
                 <CollapsibleSection
                   title={getBilingualLabel("Medical History", "மருத்துவ வரலாறு")}
                   isExpanded={isMedicalHistoryExpanded}
                   onToggle={toggleMedicalHistory}
                 >
-                  {patientData?.medicalHistory && patientData.medicalHistory.length > 0 ? (
+                  {medicalHistory && medicalHistory.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {patientData.medicalHistory.map((record: MedicalRecord, index: number) => (
+                      {medicalHistory.map((record: MedicalRecord, index: number) => (
                         <li key={record.id || index}>
                           <span className="font-semibold">{record.date ? new Date(record.date).toLocaleDateString() : 'N/A'}:</span> {record.description}
                         </li>
@@ -113,9 +120,9 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   isExpanded={isMedicationsExpanded}
                   onToggle={toggleMedications}
                 >
-                  {patientData?.medications && patientData.medications.length > 0 ? (
+                  {medications && medications.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {patientData.medications.map((med: Medication, index: number) => (
+                      {medications.map((med: Medication, index: number) => (
                         <li key={med.id || index}>
                           <span className="font-semibold">{med.name}</span>: {med.dosage} ({med.frequency}) - {med.notes}
                         </li>
@@ -132,9 +139,9 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   isExpanded={isAllergiesExpanded}
                   onToggle={toggleAllergies}
                 >
-                  {patientData?.allergies && patientData.allergies.length > 0 ? (
+                  {allergies && allergies.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {patientData.allergies.map((allergy: Allergy, index: number) => (
+                      {allergies.map((allergy: Allergy, index: number) => (
                         <li key={allergy.id || index}>
                           <span className="font-semibold">{allergy.agent}</span>: {allergy.reaction} - {allergy.severity}
                         </li>
@@ -151,9 +158,9 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
                   isExpanded={isDocumentsExpanded}
                   onToggle={toggleDocuments}
                 >
-                  {patientData?.documents && patientData.documents.length > 0 ? (
+                  {documents && documents.length > 0 ? (
                     <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                      {patientData.documents.map((doc: Document, index: number) => (
+                      {documents.map((doc: Document, index: number) => (
                         <li key={doc.id || index}>
                           <span className="font-semibold">{doc.name}</span> ({doc.type}) -{' '}
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">
@@ -176,7 +183,11 @@ const MedicalRecordsPage: React.FC<MedicalRecordsPageProps> = ({ user, onLogout 
               {getBilingualLabel("Back to Search", "தேடலுக்குத் திரும்பு")}
             </Button>
             {selectedPatient && (
-              <PrintExportButton targetId="printable-medical-records-content" filename={`MedicalRecords-${selectedPatient.name}.pdf`} /> 
+              <PrintExportButton 
+                targetId="printable-medical-records-content" 
+                filename={`MedicalRecords-${selectedPatient.name}.pdf`} 
+                pageTitle={`${selectedPatient.name} மருத்துவ பதிவுகள்`} // Dynamic pageTitle for print
+              /> 
             )}
           </div>
         </>
