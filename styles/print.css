@@ -24,7 +24,7 @@
     margin: 1cm;
     
     @top-center {
-      content: "MedRemind Hub - Medical Records";
+      content: attr(data-page-title);
       font-size: 10pt;
       font-weight: bold;
       color: #333;
@@ -52,8 +52,8 @@
   .modal,
   .tooltip,
   .dropdown,
-  button,
-  .btn,
+  button:not(.print\\:show),
+  .btn:not(.print\\:show),
   .print-hide,
   [data-print="hide"] {
     display: none !important;
@@ -62,6 +62,18 @@
   /* Show print-only elements */
   .print-only {
     display: block !important;
+  }
+
+  .print\\:block {
+    display: block !important;
+  }
+
+  .print\\:inline {
+    display: inline !important;
+  }
+
+  .print\\:inline-block {
+    display: inline-block !important;
   }
 
   /* Container and layout adjustments */

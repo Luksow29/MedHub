@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from './Button'; // Assuming Button component path
+import Button from './Button';
 
 interface PrintExportButtonProps {
   targetId: string;
@@ -20,133 +20,61 @@ const PrintExportButton: React.FC<PrintExportButtonProps> = ({
 
   const handlePrint = () => {
     const content = document.getElementById(targetId);
-    if (content) {
-      const printWindow = window.open('', '', 'height=600,width=800');
-      if (printWindow) {
-        printWindow.document.write('<html><head><title>');
-        printWindow.document.write(filename);
-        printWindow.document.write('</title>');
-        // Include Tailwind CSS for print
-        printWindow.document.write('<script src="https://cdn.tailwindcss.com"></script>');
-        printWindow.document.write('<style>');
-        printWindow.document.write(`
-          @page {
-            size: A4;
-            margin: 1cm;
-          }
-          body { 
-            font-family: 'Arial', sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            line-height: 1.5;
-          }
-          .letterhead {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #000;
-          }
-          .letterhead h1 {
-            font-size: 24px;
-            margin: 0;
-          }
-          .letterhead h2 {
-            font-size: 18px;
-            margin: 5px 0;
-          }
-          .letterhead p {
-            font-size: 12px;
-            margin: 5px 0;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-          }
-          th {
-            background-color: #f2f2f2;
-          }
-          .medical-section {
-            margin: 20px 0;
-            page-break-inside: avoid;
-          }
-          .medical-section h3 {
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-          }
-          .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 10px;
-            border-top: 1px solid #ddd;
-            padding-top: 5px;
-          }
-          .confidentiality-notice {
-            font-size: 10px;
-            border: 1px solid #000;
-            padding: 5px;
-            margin-top: 20px;
-          }
-          @media print {
-            .print\\:hidden { display: none !important; }
-            .print\\:block { display: block !important; }
-          }
-        `);
-        printWindow.document.write('</style></head><body>');
-        
-        // Add letterhead
-        printWindow.document.write('<div class="letterhead">');
-        printWindow.document.write('<h1>MedRemind Hub</h1>');
-        printWindow.document.write(`<h2>${filename}</h2>`);
-        printWindow.document.write(`<p>${getBilingualLabel("Generated on", "உருவாக்கப்பட்ட தேதி")}: ${new Date().toLocaleString()}</p>`);
-        printWindow.document.write('</div>');
-        
-        // Add content
-        printWindow.document.write(content.innerHTML);
-        
-        // Add confidentiality notice
-        printWindow.document.write('<div class="confidentiality-notice">');
-        printWindow.document.write(`<p><strong>${getBilingualLabel("CONFIDENTIAL MEDICAL RECORD", "ரகசிய மருத்துவ பதிவு")}</strong></p>`);
-        printWindow.document.write(`<p>${getBilingualLabel("This document contains confidential patient information protected by privacy laws.", "இந்த ஆவணம் தனியுரிமை சட்டங்களால் பாதுகாக்கப்பட்ட ரகசிய நோயாளி தகவல்களைக் கொண்டுள்ளது.")}</p>`);
-        printWindow.document.write('</div>');
-        
-        // Add footer
-        printWindow.document.write('<div class="footer">');
-        printWindow.document.write(`<p>MedRemind Hub - ${getBilingualLabel("Page", "பக்கம்")}: <span class="page-number"></span></p>`);
-        printWindow.document.write('</div>');
-        
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        
-        // Add page numbers
-        printWindow.onload = function() {
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-          }, 500);
-        };
-      } else {
-        // Show alert to inform user about pop-up blocking
-        alert(getBilingualLabel(
-          'Pop-up blocked. Please allow pop-ups for this site to print.',
-          'பாப்-அப் தடுக்கப்பட்டது. அச்சிட இந்த தளத்திற்கு பாப்-அப்களை அனுமதிக்கவும்.'
-        ));
-      }
-    } else {
+    if (!content) {
       console.error(`Content with ID "${targetId}" not found for printing.`);
       alert(getBilingualLabel(
         `Error: Content with ID "${targetId}" not found for printing.`,
         `பிழை: அச்சிடுவதற்கான ID "${targetId}" கொண்ட உள்ளடக்கம் கிடைக்கவில்லை.`
       ));
+      return;
     }
+
+    const printWindow = window.open('', '', 'height=600,width=800');
+    if (!printWindow) {
+      alert(getBilingualLabel(
+        'Pop-up blocked. Please allow pop-ups for this site to print.',
+        'பாப்-அப் தடுக்கப்பட்டது. அச்சிட இந்த தளத்திற்கு பாப்-அப்களை அனுமதிக்கவும்.'
+      ));
+      return;
+    }
+
+    // Start with basic HTML structure
+    printWindow.document.write('<!DOCTYPE html><html><head>');
+    printWindow.document.write(`<title>${filename}</title>`);
+    
+    // Copy all stylesheets from the current document
+    const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+    stylesheets.forEach(stylesheet => {
+      printWindow.document.write(stylesheet.outerHTML);
+    });
+    
+    // Copy all style elements
+    const styles = document.querySelectorAll('style');
+    styles.forEach(style => {
+      printWindow.document.write(style.outerHTML);
+    });
+    
+    // Include Tailwind CSS for print
+    printWindow.document.write('<script src="https://cdn.tailwindcss.com"></script>');
+    
+    // Close head and open body
+    printWindow.document.write('</head><body class="bg-white">');
+    
+    // Add content
+    printWindow.document.write(content.innerHTML);
+    
+    // Close body and html
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    
+    // Wait for resources to load before printing
+    printWindow.onload = function() {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 1000);
+    };
   };
 
   return (
