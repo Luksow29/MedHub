@@ -195,3 +195,114 @@ export interface DbConsultationDocument {
   created_at: string;
   updated_at: string;
 }
+
+// ... (other Db interfaces)
+
+// --- Client-Side Types (camelCase) ---
+export interface Consultation {
+  // ... (Consultation interface content)
+}
+
+export interface Diagnosis {
+  // ... (Diagnosis interface content)
+}
+
+export interface ClinicalNote {
+  // ... (ClinicalNote interface content)
+}
+
+export interface VitalSign {
+  id: string;
+  userId: string;
+  consultationId: string;
+  patientId: string;
+  temperature: number | null;
+  temperatureUnit: TemperatureUnit;
+  heartRate: number | null;
+  respiratoryRate: number | null;
+  bloodPressureSystolic: number | null;
+  bloodPressureDiastolic: number | null;
+  oxygenSaturation: number | null;
+  height: number | null;
+  heightUnit: HeightUnit;
+  weight: number | null;
+  weightUnit: WeightUnit;
+  bmi: number | null;
+  painScore: number | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Treatment {
+  // ... (Treatment interface content)
+}
+
+export interface Prescription {
+  // ... (Prescription interface content)
+}
+
+export interface Referral {
+  // ... (Referral interface content)
+}
+
+export interface ConsultationDocument {
+  // ... (ConsultationDocument interface content)
+}
+
+export interface IcdCode {
+  // ... (IcdCode interface content)
+}
+
+// --- Additional Types ---
+export interface ConsultationSummary {
+  // ... (ConsultationSummary interface content)
+}
+
+export interface PatientConsultationHistory {
+  // ... (PatientConsultationHistory interface content)
+}
+
+export interface DiagnosisStatistic {
+  // ... (DiagnosisStatistic interface content)
+}
+
+export interface VitalSignsTrend {
+  // ... (VitalSignsTrend interface content)
+}
+
+export interface MedicalCertificate {
+  // ... (MedicalCertificate interface content)
+}
+
+export interface ReferralLetter {
+  // ... (ReferralLetter interface content)
+}
+
+export interface PrescriptionDocument {
+  // ... (PrescriptionDocument interface content)
+}
+
+export type NewDbConsultation = Omit<DbConsultation, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
+export type UpdateDbConsultation = Partial<Omit<DbConsultation, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+
+export type NewDbDiagnosis = Omit<DbDiagnosis, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
+export type UpdateDbDiagnosis = Partial<Omit<DbDiagnosis, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+
+export type NewDbClinicalNote = Omit<DbClinicalNote, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
+export type UpdateDbClinicalNote = Partial<Omit<DbClinicalNote, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+
+export type NewDbVitalSigns = Omit<DbVitalSigns, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'bmi'>;
+export type UpdateDbVitalSigns = Partial<Omit<DbVitalSigns, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'bmi'>>;
+
+export type NewDbTreatment = Omit<DbTreatment, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
+export type UpdateDbTreatment = Partial<Omit<DbTreatment, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+
+export type NewDbPrescription = Omit<DbPrescription, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
+export type UpdateDbPrescription = Partial<Omit<DbPrescription, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+
+export type NewDbReferral = Omit<DbReferral, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
+export type UpdateDbReferral = Partial<Omit<DbReferral, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+
+export type NewDbConsultationDocument = Omit<DbConsultationDocument, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'file_name' | 'file_path'>;
+export type UpdateDbConsultationDocument = Partial<Omit<DbConsultationDocument, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'file_name' | 'file_path'>>;
