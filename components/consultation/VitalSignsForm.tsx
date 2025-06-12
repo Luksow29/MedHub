@@ -117,9 +117,10 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Temperature */}
         <div>
-          <label htmlFor="temperature" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="temperature" className="block text-sm font-medium text-slate-700 pb-1">
             {getBilingualLabel("Temperature", "வெப்பநிலை")}
           </label>
+          {/* Tamil label for Celsius/Fahrenheit */}
           <span className="block text-xs text-slate-500 pt-0.5 pb-2">
             {getBilingualLabel("Celsius", "செல்சியஸ்")}/{getBilingualLabel("Fahrenheit", "பாரன்ஹீட்")}
           </span>
@@ -135,10 +136,10 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
             <select
               value={temperatureUnit}
               onChange={(e) => setTemperatureUnit(e.target.value as TemperatureUnit)}
-              className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0" {/* flex-shrink-0 சேர்க்கப்பட்டது */}
+              className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0"
             >
-              <option value={TemperatureUnit.CELSIUS}>C</option>
-              <option value={TemperatureUnit.FAHRENHEIT}>F</option>
+              <option value={TemperatureUnit.CELSIUS}>{getBilingualLabel("Celsius", "செல்சியஸ்")}</option>
+              <option value={TemperatureUnit.FAHRENHEIT}>{getBilingualLabel("Fahrenheit", "பாரன்ஹீட்")}</option>
             </select>
           </div>
         </div>
@@ -188,7 +189,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
               placeholder={getBilingualLabel("Systolic", "சிஸ்டாலிக்")}
               className="flex-1 block w-full rounded-md border-slate-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm p-2"
             />
-            <span className="self-center text-slate-500 px-1">/</span> {/* px-1 சேர்க்கப்பட்டது */}
+            <span className="self-center text-slate-500 px-1">/</span>
             <input
               type="number"
               id="bpDiastolic"
@@ -234,7 +235,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
             <select
               value={heightUnit}
               onChange={(e) => setHeightUnit(e.target.value as HeightUnit)}
-              className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0" {/* flex-shrink-0 சேர்க்கப்பட்டது */}
+              className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0"
             >
               <option value={HeightUnit.CM}>{getBilingualLabel("cm", "செ.மீ")}</option>
               <option value={HeightUnit.IN}>{getBilingualLabel("in", "அங்குலம்")}</option>
@@ -259,7 +260,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
             <select
               value={weightUnit}
               onChange={(e) => setWeightUnit(e.target.value as WeightUnit)}
-              className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0" {/* flex-shrink-0 சேர்க்கப்பட்டது */}
+              className="rounded-none rounded-r-md border-l-0 border-slate-300 bg-slate-50 text-slate-900 sm:text-sm p-2 flex-shrink-0"
             >
               <option value={WeightUnit.KG}>{getBilingualLabel("kg", "கிலோ")}</option>
               <option value={WeightUnit.LBS}>{getBilingualLabel("lbs", "பவுண்டுகள்")}</option>
