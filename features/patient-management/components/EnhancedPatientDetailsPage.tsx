@@ -15,6 +15,7 @@ import {
 import Button from '../../../components/shared/Button';
 import Modal from '../../../components/shared/Modal';
 import PrintablePageWrapper from '../../../components/shared/PrintablePageWrapper';
+import PrintExportButton from '../../../components/shared/PrintExportButton';
 import PatientForm from './PatientForm';
 import MedicalHistoryForm from './MedicalHistoryForm';
 import MedicationForm from './MedicationForm';
@@ -354,6 +355,11 @@ const EnhancedPatientDetailsPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6 print:hidden">
           <h2 className="text-3xl font-semibold text-slate-800">{getBilingualLabel("Patient Profile", "நோயாளர் சுயவிவரம்")}</h2>
           <div className="flex space-x-3">
+            <PrintExportButton 
+              pageTitle={pageTitle}
+              variant="primary"
+              size="sm"
+            />
             <Button onClick={() => navigate('/dashboard')} variant="secondary">
               {getBilingualLabel("Back to Dashboard", "டாஷ்போர்டுக்குத் திரும்பு")}
             </Button>
