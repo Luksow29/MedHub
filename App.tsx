@@ -5,10 +5,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 
-// Import enhanced components instead of basic ones
+// Components
 import AuthPage from './components/AuthPage';
-import DashboardPageEnhanced from './components/DashboardPageEnhanced';
-import EnhancedPatientDetailsPage from './features/patient-management/components/EnhancedPatientDetailsPage';
+import DashboardPage from './pages/DashboardPage';
+import PatientDetailsPage from './features/patient-management/components/PatientDetailsPage';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<User | null>(null);
@@ -57,9 +57,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<DashboardPageEnhanced user={session} onLogout={handleLogout} />} />
-        <Route path="/dashboard" element={<DashboardPageEnhanced user={session} onLogout={handleLogout} />} />
-        <Route path="/patient/:patientId" element={<EnhancedPatientDetailsPage />} />
+        <Route path="/" element={<DashboardPage user={session} onLogout={handleLogout} />} />
+        <Route path="/dashboard" element={<DashboardPage user={session} onLogout={handleLogout} />} />
+        <Route path="/patient/:patientId" element={<PatientDetailsPage />} />
       </Routes>
     </Router>
   );
