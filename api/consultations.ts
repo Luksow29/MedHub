@@ -6,7 +6,7 @@ import {
   NewDbConsultation, 
   UpdateDbConsultation,
   ConsultationStatus
-} from '../types';
+} from '../types/index';
 
 // Get all consultations for a user with optional filtering
 export const getAllConsultations = async (

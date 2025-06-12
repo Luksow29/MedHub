@@ -6,7 +6,7 @@ import {
   UpdateDbConsultation, 
   ConsultationStatus,
   Patient
-} from '../../types';
+} from '../../types/index';
 import Button from '../shared/Button';
 import { formatDateToInput, formatTimeToInput } from '../../utils/dateHelpers';
 import { supabase } from '../../lib/supabase';

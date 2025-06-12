@@ -13,7 +13,7 @@ import {
   NewDbConsultation,
   Patient,
   ConsultationStatus
-} from '../../types';
+} from '../../types/index';
 
 // API functions
 import * as ConsultationAPI from '../../api/consultations';
