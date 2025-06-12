@@ -103,11 +103,11 @@ export const checkAppointmentConflicts = async (
 ): Promise<{ data: ConflictCheck | null; error: any }> => {
   try {
     const { data, error } = await supabase.rpc('check_appointment_conflicts', {
-      appointment_date: date,
-      appointment_time: time,
-      duration_minutes: duration,
-      user_id_param: userId,
-      exclude_appointment_id: excludeAppointmentId || null
+      p_appointment_date: date,
+      p_appointment_time: time,
+      p_duration_minutes: duration,
+      p_user_id_param: userId,
+      p_exclude_appointment_id: excludeAppointmentId || null
     });
 
     if (error) throw error;
@@ -119,9 +119,9 @@ export const checkAppointmentConflicts = async (
     let suggestedTimes: string[] = [];
     if (hasConflict) {
       const { data: suggestions, error: suggestError } = await supabase.rpc('get_available_time_slots', {
-        appointment_date: date,
-        user_id_param: userId,
-        duration_minutes: duration
+        p_appointment_date: date,
+        p_user_id_param: userId,
+        p_duration_minutes: duration
       });
 
       if (!suggestError && suggestions) {
@@ -149,9 +149,9 @@ export const getAvailableTimeSlots = async (
   duration: number = 30
 ) => {
   return supabase.rpc('get_available_time_slots', {
-    appointment_date: date,
-    user_id_param: userId,
-    duration_minutes: duration
+    p_appointment_date: date,
+    p_user_id_param: userId,
+    p_duration_minutes: duration
   });
 };
 
