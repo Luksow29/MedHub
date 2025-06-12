@@ -3,8 +3,8 @@
 // Import all types from separate files
 export * from './consultation';
 
-// Explicit export for IcdVersion to ensure it's available
-export { IcdVersion } from './consultation';
+// Explicit exports to ensure they're available (some bundlers require this)
+export { IcdVersion, HeightUnit, WeightUnit, TemperatureUnit } from './consultation';
 
 // --- Enums ---
 export enum ReminderMethod {
