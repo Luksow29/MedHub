@@ -15,7 +15,7 @@ interface VitalSignsFormProps {
   patientId: string;
   onSubmit: (data: NewDbVitalSigns | UpdateDbVitalSigns) => Promise<void>;
   onCancel: () => void;
-  isOpen: boolean; // இந்தப் பண்புக்கூறைச் சேர்க்கிறோம்
+  isOpen: boolean;
 }
 
 const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
@@ -24,28 +24,22 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   patientId,
   onSubmit,
   onCancel,
-  isOpen // இந்தப் பண்புக்கூறைப் பெறுகிறோம்
+  isOpen
 }) => {
-  const [temperature, setTemperature] = useState<number | null>(vitalSigns?.temperature ?? null);
-  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(
-    vitalSigns?.temperatureUnit || TemperatureUnit.CELSIUS
-  );
-  const [heartRate, setHeartRate] = useState<number | null>(vitalSigns?.heartRate ?? null);
-  const [respiratoryRate, setRespiratoryRate] = useState<number | null>(vitalSigns?.respiratoryRate ?? null);
-  const [bloodPressureSystolic, setBloodPressureSystolic] = useState<number | null>(
-    vitalSigns?.bloodPressureSystolic ?? null
-  );
-  const [bloodPressureDiastolic, setBloodPressureDiastolic] = useState<number | null>(
-    vitalSigns?.bloodPressureDiastolic ?? null
-  );
-  const [oxygenSaturation, setOxygenSaturation] = useState<number | null>(vitalSigns?.oxygenSaturation ?? null);
-  const [height, setHeight] = useState<number | null>(vitalSigns?.height ?? null);
-  const [heightUnit, setHeightUnit] = useState<HeightUnit>(vitalSigns?.heightUnit || HeightUnit.CM);
-  const [weight, setWeight] = useState<number | null>(vitalSigns?.weight ?? null);
-  const [weightUnit, setWeightUnit] = useState<WeightUnit>(vitalSigns?.weightUnit || WeightUnit.KG);
-  const [bmi, setBmi] = useState<number | null>(vitalSigns?.bmi ?? null);
-  const [painScore, setPainScore] = useState<number | null>(vitalSigns?.painScore ?? null);
-  const [notes, setNotes] = useState(vitalSigns?.notes || '');
+  const [temperature, setTemperature] = useState<number | null>(null);
+  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(TemperatureUnit.CELSIUS);
+  const [heartRate, setHeartRate] = useState<number | null>(null);
+  const [respiratoryRate, setRespiratoryRate] = useState<number | null>(null);
+  const [bloodPressureSystolic, setBloodPressureSystolic] = useState<number | null>(null);
+  const [bloodPressureDiastolic, setBloodPressureDiastolic] = useState<number | null>(null);
+  const [oxygenSaturation, setOxygenSaturation] = useState<number | null>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  const [heightUnit, setHeightUnit] = useState<HeightUnit>(HeightUnit.CM);
+  const [weight, setWeight] = useState<number | null>(null);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(WeightUnit.KG);
+  const [bmi, setBmi] = useState<number | null>(null);
+  const [painScore, setPainScore] = useState<number | null>(null);
+  const [notes, setNotes] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,32 +47,43 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   const formRef = useRef<HTMLFormElement>(null);
 
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
-
-  // BMI கணக்கிடுவோம்
+  
+  // ***மேம்பாடு 1: Props மாறும் போது படிவத்தின் நிலையை மீட்டமைத்தல்***
+  // இந்த useEffect, modal திறக்கப்படும்போது அல்லது வேறு நோயாளி தேர்ந்தெடுக்கப்படும்போது,
+  // படிவத்தின் மதிப்புகளைப் புதிய vitalSigns prop உடன் ஒத்திசைக்கிறது.
   useEffect(() => {
-    if (height !== null && weight !== null) {
-      let calculatedBmi: number;
-      if (Number(height) > 0 && Number(weight) > 0) {
-        const heightInMeters = heightUnit === HeightUnit.CM ? Number(height) / 100 : Number(height) * 0.0254;
-        const weightInKg = weightUnit === WeightUnit.LBS ? Number(weight) * 0.453592 : Number(weight);
+    if (isOpen) {
+      setTemperature(vitalSigns?.temperature ?? null);
+      setTemperatureUnit(vitalSigns?.temperatureUnit || TemperatureUnit.CELSIUS);
+      setHeartRate(vitalSigns?.heartRate ?? null);
+      setRespiratoryRate(vitalSigns?.respiratoryRate ?? null);
+      setBloodPressureSystolic(vitalSigns?.bloodPressureSystolic ?? null);
+      setBloodPressureDiastolic(vitalSigns?.bloodPressureDiastolic ?? null);
+      setOxygenSaturation(vitalSigns?.oxygenSaturation ?? null);
+      setHeight(vitalSigns?.height ?? null);
+      setHeightUnit(vitalSigns?.heightUnit || HeightUnit.CM);
+      setWeight(vitalSigns?.weight ?? null);
+      setWeightUnit(vitalSigns?.weightUnit || WeightUnit.KG);
+      setBmi(vitalSigns?.bmi ?? null);
+      setPainScore(vitalSigns?.painScore ?? null);
+      setNotes(vitalSigns?.notes || '');
+      setError(null); // முந்தைய பிழைகளை நீக்க
+    }
+  }, [vitalSigns, isOpen]);
 
-        if (heightInMeters > 0) {
-          calculatedBmi = weightInKg / (heightInMeters * heightInMeters);
-          setBmi(parseFloat(calculatedBmi.toFixed(2)));
-        } else {
-          setBmi(null);
-        }
-      } else {
-        setBmi(null);
-      }
+  // ***மேம்பாடு 2: BMI கணக்கிட உதவிச் செயல்பாட்டைப் பயன்படுத்துதல்***
+  useEffect(() => {
+    if (height !== null && weight !== null && height > 0 && weight > 0) {
+      const calculatedBmi = calculateBMI(height, heightUnit, weight, weightUnit);
+      setBmi(parseFloat(calculatedBmi.toFixed(2)));
     } else {
       setBmi(null);
     }
   }, [height, heightUnit, weight, weightUnit]);
 
-  // படிவத்திற்கு வெளியே கிளிக் செய்தால் மூட
+  // படிவத்திற்கு வெளியே கிளிக் செய்தால் மூடுவதற்கான useEffect
   useEffect(() => {
-    if (!isOpen) return; // மோடல் திறந்திருந்தால் மட்டுமே event listener ஐச் சேர்க்கவும்
+    if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       if (formRef.current && !formRef.current.contains(event.target as Node)) {
@@ -90,7 +95,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onCancel, isOpen]); // isOpen சார்பையும் சேர்க்கவும்
+  }, [onCancel, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,15 +131,14 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
     }
   };
 
-  if (!isOpen) return null; // மோடல் திறக்கப்படவில்லை என்றால் எதையும் render செய்ய வேண்டாம்
+  if (!isOpen) return null;
 
   return (
-    // மோடல் Overlay, ஸ்க்ரோல்பார் மற்றும் கிளிக் அவுட்சைட் செயல்பாட்டிற்காக
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
       <form
         ref={formRef}
         onSubmit={handleSubmit}
-        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6" // max-h-[90vh] மற்றும் overflow-y-auto சேர்க்கப்பட்டது
+        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6"
       >
         {/* Close Button */}
         <button
@@ -243,7 +247,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
               />
             </div>
           </div>
-
+          
           {/* Oxygen Saturation */}
           <div className="col-span-1">
             <label htmlFor="oxygenSaturation" className="block text-sm font-medium text-slate-700 pb-1">
@@ -310,7 +314,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
               </select>
             </div>
           </div>
-
+          
           {/* BMI */}
           <div className="col-span-1">
             <label htmlFor="bmi" className="block text-sm font-medium text-slate-700 pb-1">
@@ -374,7 +378,9 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   );
 };
 
-// Helper function to calculate BMI
+// உதவிச் செயல்பாடுகள் (Helper Functions)
+
+// BMI கணக்கிடுவதற்கான உதவிச் செயல்பாடு
 const calculateBMI = (
   height: number,
   heightUnit: HeightUnit,
@@ -392,14 +398,15 @@ const calculateBMI = (
   return weightInKg / (heightInMeters * heightInMeters);
 };
 
-// Helper function to get pain score color
+// இந்த செயல்பாடுகள் இந்த கோப்பில் பயன்படுத்தப்படவில்லை, ஆனால் தரவைக் காண்பிக்கும் பிற கூறுகளில் பயனுள்ளதாக இருக்கும்.
+// வலி மதிப்பெண் அடிப்படையில் வண்ணத்தைப் பெறுவதற்கான உதவிச் செயல்பாடு
 const getPainScoreColor = (painScore: number): string => {
   if (painScore <= 3) return 'bg-green-500';
   if (painScore <= 6) return 'bg-yellow-500';
   return 'bg-red-500';
 };
 
-// Helper function to get pain score label
+// வலி மதிப்பெண் லேபிளைப் பெறுவதற்கான உதவிச் செயல்பாடு
 const getPainScoreLabel = (painScore: number): string => {
   if (painScore <= 3) return 'Mild';
   if (painScore <= 6) return 'Moderate';
