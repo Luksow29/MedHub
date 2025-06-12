@@ -1,171 +1,192 @@
-// types/consultation.ts - Types for the consultation management system
+// types/consultation.ts
 
 // --- Enums ---
 export enum ConsultationStatus {
   SCHEDULED = 'scheduled',
-  IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
+  RESCHEDULED = 'rescheduled',
+  NO_SHOW = 'no_show',
 }
 
+export enum ICDVersion {
+  ICD_10 = 'ICD-10',
+  ICD_11 = 'ICD-11',
+}
+
+export enum HeightUnit {
+  CM = 'cm',
+  IN = 'in',
+}
+
+export enum WeightUnit {
+  KG = 'kg',
+  LBS = 'lbs',
+}
+
+export enum AppointmentStatus {
+  SCHEDULED = 'scheduled',
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
+  NO_SHOW = 'no_show',
+  RESCHEDULED = 'rescheduled',
+}
+
+export enum RecurrencePattern {
+  NONE = 'none',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  CUSTOM = 'custom',
+}
+
+export enum WaitlistStatus {
+  ACTIVE = 'active',
+  NOTIFIED = 'notified',
+  CONVERTED = 'converted',
+  CANCELLED = 'cancelled',
+}
+
+export enum ConflictType {
+  TIME_OVERLAP = 'time_overlap',
+  DOUBLE_BOOKING = 'double_booking',
+  RESOURCE_CONFLICT = 'resource_conflict',
+}
+
+// Referral Status மற்றும் Urgency ஐ சேர்க்கிறோம்
 export enum ReferralStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 export enum ReferralUrgency {
   ROUTINE = 'routine',
   URGENT = 'urgent',
-  EMERGENCY = 'emergency'
+  EMERGENCY = 'emergency',
 }
 
+// TemperatureUnit enum ஐ மீண்டும் பெரிய எழுத்துக்களில் மாற்றியமைக்கிறோம் (தரவுத்தளத்துடன் பொருந்த)
 export enum TemperatureUnit {
   CELSIUS = 'Celsius',
   FAHRENHEIT = 'Fahrenheit'
 }
 
-export enum HeightUnit {
-  CM = 'cm',
-  IN = 'in'
-}
-
-export enum WeightUnit {
-  KG = 'kg',
-  LB = 'lb'
-}
-
-export enum IcdVersion {
-  ICD10 = 'ICD-10',
-  ICD11 = 'ICD-11'
-}
 
 // --- Database-mirroring Types (snake_case) ---
+// இந்த இடைமுகங்கள் 'consultations' அட்டவணை வரிசைகளின் சரியான கட்டமைப்பைக் குறிக்கின்றன.
 export interface DbConsultation {
   id: string;
   user_id: string;
   patient_id: string;
   appointment_id: string | null;
-  consultation_date: string;
-  consultation_time: string;
+  consultation_date: string; //YYYY-MM-DD
+  consultation_time: string; // HH:MM
   attending_physician: string;
-  chief_complaint: string;
+  chief_complaint: string | null;
+  history_of_present_illness: string | null;
+  review_of_systems: string | null;
+  physical_examination: string | null;
+  assessment: string | null;
+  plan: string | null;
   status: ConsultationStatus;
-  follow_up_date: string | null;
-  follow_up_notes: string | null;
   is_deleted: boolean;
   deleted_at: string | null;
   deleted_by: string | null;
+  follow_up_date: string | null;
+  follow_up_notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface DbDiagnosis {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
+  user_id: string;
   icd_code: string;
-  icd_version: IcdVersion;
-  description: string;
+  icd_version: ICDVersion;
+  diagnosis_name: string;
   is_primary: boolean;
-  diagnosis_date: string;
   notes: string | null;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface DbClinicalNote {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
+  user_id: string;
+  note_type: 'SOAP' | 'Progress' | 'Discharge';
   subjective: string | null;
   objective: string | null;
   assessment: string | null;
   plan: string | null;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface DbVitalSigns {
+export interface DbVitalSign {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
-  temperature: number | null;
-  temperature_unit: TemperatureUnit;
-  heart_rate: number | null;
-  respiratory_rate: number | null;
+  user_id: string;
+  recorded_at: string; // timestampz
   blood_pressure_systolic: number | null;
   blood_pressure_diastolic: number | null;
-  oxygen_saturation: number | null;
+  heart_rate: number | null; // bpm
+  respiratory_rate: number | null; // breaths per minute
+  temperature: number | null; // Celsius
   height: number | null;
-  height_unit: HeightUnit;
+  height_unit: HeightUnit | null;
   weight: number | null;
-  weight_unit: WeightUnit;
+  weight_unit: WeightUnit | null;
   bmi: number | null;
-  pain_score: number | null;
+  oxygen_saturation: number | null; // percentage
   notes: string | null;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface DbTreatment {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
-  treatment_code: string | null;
+  user_id: string;
   treatment_name: string;
   description: string | null;
-  instructions: string | null;
-  duration: number | null;
-  follow_up_required: boolean;
-  follow_up_interval: number | null;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
+  start_date: string; //YYYY-MM-DD
+  end_date: string | null; //YYYY-MM-DD
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface DbPrescription {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
+  user_id: string;
   medication_name: string;
   dosage: string;
   frequency: string;
-  duration: number;
-  quantity: number | null;
-  route: string | null;
-  special_instructions: string | null;
-  is_refillable: boolean;
-  refill_count: number;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
+  duration: string;
+  quantity: number;
+  refills: number | null;
+  notes: string | null;
+  prescribed_at: string; // timestampz
   created_at: string;
   updated_at: string;
 }
 
 export interface DbReferral {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
+  user_id: string;
   referral_type: string;
   specialist: string;
   facility: string | null;
@@ -180,35 +201,66 @@ export interface DbReferral {
   updated_at: string;
 }
 
+
 export interface DbConsultationDocument {
   id: string;
-  user_id: string;
   consultation_id: string;
   patient_id: string;
+  user_id: string;
   document_type: string;
   file_name: string;
   file_path: string;
-  description: string | null;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  deleted_by: string | null;
+  notes: string | null;
+  uploaded_at: string; // timestampz
+  created_at: string;
+  updated_at: string;
+  description: string | null; // DbConsultationDocument இல் description சேர்க்கப்பட்டது
+}
+
+export interface DbWaitlistEntry {
+  id: string;
+  user_id: string;
+  patient_id: string;
+  preferred_date: string | null;
+  preferred_time: string | null;
+  service_type: string | null;
+  reason: string;
+  priority: number;
+  status: WaitlistStatus;
+  notes: string | null;
+  notified_at: string | null;
+  expires_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface DbIcdCode {
+export interface DbTimeSlot {
   id: string;
-  code: string;
-  version: IcdVersion;
-  description: string;
-  category: string | null;
-  subcategory: string | null;
-  is_active: boolean;
+  user_id: string;
+  day_of_week: number; // 0 = Sunday, 1 = Monday, etc.
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+  buffer_time: number; // minutes between appointments
+  max_appointments: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbAppointmentConflict {
+  id: string;
+  user_id: string;
+  appointment_id: string;
+  conflicting_appointment_id: string;
+  conflict_type: ConflictType;
+  resolved: boolean;
+  resolution_notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
 // --- Client-Side Types (camelCase) ---
+// UI கூறுகளில் பயன்படுத்தப்படும் வகைகள்
 export interface Consultation {
   id: string;
   userId: string;
@@ -217,30 +269,36 @@ export interface Consultation {
   consultationDate: string;
   consultationTime: string;
   attendingPhysician: string;
-  chiefComplaint: string;
+  chiefComplaint: string | null;
+  historyOfPresentIllness: string | null;
+  reviewOfSystems: string | null;
+  physicalExamination: string | null;
+  assessment: string | null;
+  plan: string | null;
   status: ConsultationStatus;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  deletedBy: string | null;
   followUpDate: string | null;
   followUpNotes: string | null;
   createdAt: string;
   updatedAt: string;
-  // Joined fields
+  // Join fields from patients and appointments
   patientName?: string;
-  patientDob?: string;
-  patientGender?: string;
   patientPhone?: string;
-  patientEmail?: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
 }
 
 export interface Diagnosis {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
+  userId: string;
   icdCode: string;
-  icdVersion: IcdVersion;
-  description: string;
+  icdVersion: ICDVersion;
+  diagnosisName: string;
   isPrimary: boolean;
-  diagnosisDate: string;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -248,9 +306,10 @@ export interface Diagnosis {
 
 export interface ClinicalNote {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
+  userId: string;
+  noteType: 'SOAP' | 'Progress' | 'Discharge';
   subjective: string | null;
   objective: string | null;
   assessment: string | null;
@@ -259,24 +318,24 @@ export interface ClinicalNote {
   updatedAt: string;
 }
 
-export interface VitalSigns {
+export interface VitalSign {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
-  temperature: number | null;
-  temperatureUnit: TemperatureUnit;
-  heartRate: number | null;
-  respiratoryRate: number | null;
+  userId: string;
+  recordedAt: string;
   bloodPressureSystolic: number | null;
   bloodPressureDiastolic: number | null;
-  oxygenSaturation: number | null;
+  heartRate: number | null;
+  respiratoryRate: number | null;
+  temperature: number | null;
+  temperatureUnit: TemperatureUnit; // enum பயன்படுத்தப்பட்டது
   height: number | null;
-  heightUnit: HeightUnit;
+  heightUnit: HeightUnit | null;
   weight: number | null;
-  weightUnit: WeightUnit;
+  weightUnit: WeightUnit | null;
   bmi: number | null;
-  painScore: number | null;
+  oxygenSaturation: number | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -284,269 +343,188 @@ export interface VitalSigns {
 
 export interface Treatment {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
-  treatmentCode: string | null;
+  userId: string;
   treatmentName: string;
   description: string | null;
-  instructions: string | null;
-  duration: number | null;
-  followUpRequired: boolean;
-  followUpInterval: number | null;
+  startDate: string;
+  endDate: string | null;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Prescription {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
+  userId: string;
   medicationName: string;
   dosage: string;
   frequency: string;
-  duration: number;
-  quantity: number | null;
-  route: string | null;
-  specialInstructions: string | null;
-  isRefillable: boolean;
-  refillCount: number;
+  duration: string;
+  quantity: number;
+  refills: number | null;
+  notes: string | null;
+  prescribedAt: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Referral {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
-  referralType: string;
-  specialist: string;
-  facility: string | null;
+  userId: string;
+  referredTo: string; // Specialist or department
   reason: string;
-  urgency: ReferralUrgency;
-  status: ReferralStatus;
+  urgency: ReferralUrgency; // enum பயன்படுத்தப்பட்டது
+  referralDate: string; //YYYY-MM-DD
+  status: ReferralStatus; // enum பயன்படுத்தப்பட்டது
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  referralType: string; // இதை Referral க்கு சேர்க்கிறோம், ஏனெனில் ReferralForm இல் பயன்படுத்தப்படுகிறது
+  specialist: string; // இதை Referral க்கு சேர்க்கிறோம், ஏனெனில் ReferralForm இல் பயன்படுத்தப்படுகிறது
+  facility: string | null; // இதை Referral க்கு சேர்க்கிறோம், ஏனெனில் ReferralForm இல் பயன்படுத்தப்படுகிறது
 }
 
 export interface ConsultationDocument {
   id: string;
-  userId: string;
   consultationId: string;
   patientId: string;
+  userId: string;
   documentType: string;
   fileName: string;
   filePath: string;
-  description: string | null;
+  notes: string | null;
+  uploadedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  description: string | null; // ConsultationDocument இல் description சேர்க்கப்பட்டது
+}
+
+export interface WaitlistEntry {
+  id: string;
+  userId: string;
+  patientId: string;
+  preferredDate: string | null;
+  preferredTime: string | null;
+  serviceType: string | null;
+  reason: string;
+  priority: number;
+  status: WaitlistStatus;
+  notes: string | null;
+  notifiedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Patient details from join
+  patientName?: string;
+  patientPhone?: string;
+  patientEmail?: string;
+  patientPreferredContactMethod?: ReminderMethod;
+}
+
+export interface TimeSlot {
+  id: string;
+  userId: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  bufferTime: number;
+  maxAppointments: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface IcdCode {
+export interface AppointmentConflict {
   id: string;
-  code: string;
-  version: IcdVersion;
-  description: string;
-  category: string | null;
-  subcategory: string | null;
-  isActive: boolean;
+  userId: string;
+  appointmentId: string;
+  conflictingAppointmentId: string;
+  conflictType: ConflictType;
+  resolved: boolean;
+  resolutionNotes: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  resource?: any;
+  appointment?: Appointment;
+}
+
+export interface AvailableTimeSlot {
+  time: string;
+  duration: number;
+  available: boolean;
+}
+
+export interface ConflictCheck {
+  hasConflict: boolean;
+  conflictingAppointments: any[];
+  suggestedTimes: string[];
+}
+
+export interface ConflictResolution {
+  conflictId: string;
+  resolution: 'reschedule' | 'cancel' | 'override';
+  newDateTime?: { date: string; time: string };
+  notes?: string;
+}
+
+// Medical record types
+export interface MedicalRecord {
+  id: string;
+  date: string;
+  description: string;
+}
+
+export interface Document {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
 }
 
 // --- Types for Data Submitted to Supabase ---
-export type NewDbConsultation = Omit<DbConsultation, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
-export type UpdateDbConsultation = Partial<Omit<DbConsultation, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+export type NewDbConsultation = Omit<DbConsultation, 'id' | 'user_id' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'created_at' | 'updated_at'>;
+export type UpdateDbConsultation = Partial<Omit<DbConsultation, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
 
-export type NewDbDiagnosis = Omit<DbDiagnosis, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
-export type UpdateDbDiagnosis = Partial<Omit<DbDiagnosis, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+export type NewDbDiagnosis = Omit<DbDiagnosis, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+export type UpdateDbDiagnosis = Partial<Omit<DbDiagnosis, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
 
-export type NewDbClinicalNote = Omit<DbClinicalNote, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
-export type UpdateDbClinicalNote = Partial<Omit<DbClinicalNote, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+export type NewDbClinicalNote = Omit<DbClinicalNote, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+export type UpdateDbClinicalNote = Partial<Omit<DbClinicalNote, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
 
-export type NewDbVitalSigns = Omit<DbVitalSigns, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'bmi'>;
-export type UpdateDbVitalSigns = Partial<Omit<DbVitalSigns, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'bmi'>>;
+export type NewDbVitalSigns = Omit<DbVitalSigns, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'bmi'>;
+export type UpdateDbVitalSigns = Partial<Omit<DbVitalSigns, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'bmi'>>;
 
-export type NewDbTreatment = Omit<DbTreatment, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
-export type UpdateDbTreatment = Partial<Omit<DbTreatment, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+export type NewDbTreatment = Omit<DbTreatment, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+export type UpdateDbTreatment = Partial<Omit<DbTreatment, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
 
-export type NewDbPrescription = Omit<DbPrescription, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
-export type UpdateDbPrescription = Partial<Omit<DbPrescription, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+export type NewDbPrescription = Omit<DbPrescription, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+export type UpdateDbPrescription = Partial<Omit<DbPrescription, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
 
-export type NewDbReferral = Omit<DbReferral, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>;
-export type UpdateDbReferral = Partial<Omit<DbReferral, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id'>>;
+export type NewDbReferral = Omit<DbReferral, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'referral_type' | 'specialist'>;
+export type UpdateDbReferral = Partial<Omit<DbReferral, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by'>>;
 
-export type NewDbConsultationDocument = Omit<DbConsultationDocument, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'file_name' | 'file_path'>;
-export type UpdateDbConsultationDocument = Partial<Omit<DbConsultationDocument, 'id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'user_id' | 'file_name' | 'file_path'>>;
+export type NewDbConsultationDocument = Omit<DbConsultationDocument, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by' | 'description'>;
+export type UpdateDbConsultationDocument = Partial<Omit<DbConsultationDocument, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_deleted' | 'deleted_at' | 'deleted_by'>>;
 
-// --- Additional Types ---
-export interface ConsultationSummary {
-  consultation: {
-    id: string;
-    date: string;
-    time: string;
-    physician: string;
-    chiefComplaint: string;
-    status: ConsultationStatus;
-    followUpDate: string | null;
-    followUpNotes: string | null;
-    createdAt: string;
-  };
-  patient: {
-    id: string;
-    name: string;
-    dob: string | null;
-    gender: string | null;
-    contactPhone: string;
-    contactEmail: string | null;
-  };
-  vitalSigns: {
-    temperature: number | null;
-    temperatureUnit: TemperatureUnit;
-    heartRate: number | null;
-    respiratoryRate: number | null;
-    bloodPressure: string | null;
-    oxygenSaturation: number | null;
-    height: number | null;
-    heightUnit: HeightUnit;
-    weight: number | null;
-    weightUnit: WeightUnit;
-    bmi: number | null;
-    painScore: number | null;
-  }[];
-  clinicalNotes: {
-    subjective: string | null;
-    objective: string | null;
-    assessment: string | null;
-    plan: string | null;
-  };
-  diagnoses: {
-    icdCode: string;
-    icdVersion: IcdVersion;
-    description: string;
-    isPrimary: boolean;
-  }[];
-  treatments: {
-    treatmentName: string;
-    treatmentCode: string | null;
-    description: string | null;
-    instructions: string | null;
-  }[];
-  prescriptions: {
-    medicationName: string;
-    dosage: string;
-    frequency: string;
-    duration: number;
-    route: string | null;
-    specialInstructions: string | null;
-  }[];
-  referrals: {
-    referralType: string;
-    specialist: string;
-    facility: string | null;
-    reason: string;
-    urgency: ReferralUrgency;
-    status: ReferralStatus;
-  }[];
-}
+export type NewDbWaitlistEntry = Omit<DbWaitlistEntry, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'notified_at' | 'expires_at'>;
+export type UpdateDbWaitlistEntry = Partial<Omit<DbWaitlistEntry, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
-export interface PatientConsultationHistory {
-  consultationId: string;
-  consultationDate: string;
-  attendingPhysician: string;
-  chiefComplaint: string;
-  status: ConsultationStatus;
-  diagnoses: {
-    icdCode: string;
-    description: string;
-    isPrimary: boolean;
-  }[];
-  prescriptions: {
-    medicationName: string;
-    dosage: string;
-    duration: number;
-  }[];
-}
+export type NewDbTimeSlot = Omit<DbTimeSlot, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
+export type UpdateDbTimeSlot = Partial<Omit<DbTimeSlot, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
-export interface DiagnosisStatistic {
-  icdCode: string;
-  description: string;
-  count: number;
-  percentage: number;
-}
+export type NewDbAppointmentConflict = Omit<DbAppointmentConflict, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'resolved' | 'resolution_notes'>;
+export type UpdateDbAppointmentConflict = Partial<Omit<DbAppointmentConflict, 'id' | 'created_at' | 'updated_at' | 'user_id'>>;
 
-export interface VitalSignsTrend {
-  date: string;
-  value: number;
-}
-
-export interface MedicalCertificate {
-  certificateId: string;
-  issueDate: string;
-  patientName: string;
-  patientDob: string | null;
-  patientGender: string | null;
-  consultationDate: string;
-  physician: string;
-  diagnoses: {
-    icdCode: string;
-    description: string;
-    isPrimary: boolean;
-  }[];
-  startDate: string;
-  endDate: string;
-  daysOff: number;
-  reason: string;
-}
-
-export interface ReferralLetter {
-  referralId: string;
-  referralDate: string;
-  patientName: string;
-  patientDob: string | null;
-  patientGender: string | null;
-  patientContact: string;
-  patientEmail: string | null;
-  patientAddress: string | null;
-  consultationDate: string;
-  referringPhysician: string;
-  specialist: string;
-  facility: string | null;
-  referralType: string;
-  reason: string;
-  urgency: ReferralUrgency;
-  diagnoses: {
-    icdCode: string;
-    description: string;
-    isPrimary: boolean;
-  }[];
-  clinicalNotes: {
-    subjective: string | null;
-    objective: string | null;
-    assessment: string | null;
-    plan: string | null;
-  };
-  additionalNotes: string | null;
-}
-
-export interface PrescriptionDocument {
-  prescriptionId: string;
-  patientName: string;
-  patientDob: string | null;
-  patientGender: string | null;
-  consultationDate: string;
-  physician: string;
-  medicationName: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  route: string | null;
-  quantity: number | null;
-  specialInstructions: string | null;
-  isRefillable: boolean;
-  refillCount: number;
-  issueDate: string;
-}
