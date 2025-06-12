@@ -15,6 +15,7 @@ interface VitalSignsFormProps {
   patientId: string;
   onSubmit: (data: NewDbVitalSigns | UpdateDbVitalSigns) => Promise<void>;
   onCancel: () => void;
+  isOpen: boolean; // இந்தப் பண்புக்கூறைச் சேர்க்கிறோம்
 }
 
 const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
@@ -22,7 +23,8 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
   consultationId,
   patientId,
   onSubmit,
-  onCancel
+  onCancel,
+  isOpen // இந்தப் பண்புக்கூறைப் பெறுகிறோம்
 }) => {
   const [temperature, setTemperature] = useState<number | null>(vitalSigns?.temperature ?? null);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(
@@ -76,6 +78,8 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
 
   // படிவத்திற்கு வெளியே கிளிக் செய்தால் மூட
   useEffect(() => {
+    if (!isOpen) return; // மோடல் திறந்திருந்தால் மட்டுமே event listener ஐச் சேர்க்கவும்
+
     const handleClickOutside = (event: MouseEvent) => {
       if (formRef.current && !formRef.current.contains(event.target as Node)) {
         onCancel();
@@ -86,7 +90,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onCancel]);
+  }, [onCancel, isOpen]); // isOpen சார்பையும் சேர்க்கவும்
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,13 +126,15 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
     }
   };
 
+  if (!isOpen) return null; // மோடல் திறக்கப்படவில்லை என்றால் எதையும் render செய்ய வேண்டாம்
+
   return (
-    // மோடல் Overlay, ஸ்க்ரோல்பார் மற்றும் கிளிக் அவுட்சைட் செயல்பாட்டிற்காக (இந்த படிவம் ஒரு மோடலாக செயல்பட்டால்)
+    // மோடல் Overlay, ஸ்க்ரோல்பார் மற்றும் கிளிக் அவுட்சைட் செயல்பாட்டிற்காக
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
       <form
         ref={formRef}
         onSubmit={handleSubmit}
-        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6"
+        className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-6" // max-h-[90vh] மற்றும் overflow-y-auto சேர்க்கப்பட்டது
       >
         {/* Close Button */}
         <button
@@ -338,7 +344,7 @@ const VitalSignsForm: React.FC<VitalSignsFormProps> = ({
         </div>
 
         {/* Notes */}
-        <div className="col-span-full"> {/* Notes ஐ முழு அகலத்திற்கு விரிவுபடுத்தவும் */}
+        <div className="col-span-full">
           <label htmlFor="notes" className="block text-sm font-medium text-slate-700 pb-1">
             {getBilingualLabel("Notes (Optional)", "குறிப்புகள் (விருப்பமானது)")}
           </label>
@@ -375,19 +381,12 @@ const calculateBMI = (
   weight: number,
   weightUnit: WeightUnit
 ): number => {
-  // height மற்றும் weight பூஜ்ஜியத்தை விட அதிகமாக இருப்பதை உறுதி செய்கிறோம்
   if (height <= 0 || weight <= 0) {
-    return 0; // Invalid input for BMI calculation
+    return 0;
   }
-
-  // Convert height to meters
   const heightInMeters = heightUnit === HeightUnit.CM ? height / 100 : height * 0.0254;
-
-  // Convert weight to kg
   const weightInKg = weightUnit === WeightUnit.KG ? weight : weight * 0.453592;
-
-  // Calculate BMI
-  if (heightInMeters === 0) { // Avoid division by zero
+  if (heightInMeters === 0) {
     return 0;
   }
   return weightInKg / (heightInMeters * heightInMeters);
