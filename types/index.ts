@@ -3,6 +3,9 @@
 // Import all types from separate files
 export * from './consultation';
 
+// Explicit export for IcdVersion to ensure it's available
+export { IcdVersion } from './consultation';
+
 // --- Enums ---
 export enum ReminderMethod {
   EMAIL = 'Email',
