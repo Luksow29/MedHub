@@ -1,86 +1,57 @@
-import React, { useState } from 'react';
-import Button from './Button';
+import React from 'react';
+import Button from './Button'; // Assuming Button component path
 
 interface PrintExportButtonProps {
-  pageTitle?: string;
-  className?: string;
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'warning';
-  size?: 'sm' | 'md' | 'lg';
+  targetId: string;
+  filename: string;
 }
 
-const PrintExportButton: React.FC<PrintExportButtonProps> = ({
-  pageTitle = 'MedRemind Hub Document',
-  className = '',
-  variant = 'secondary',
-  size = 'sm'
-}) => {
-  const [isExporting, setIsExporting] = useState(false);
-
+const PrintExportButton: React.FC<PrintExportButtonProps> = ({ targetId, filename }) => {
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
   const handlePrint = () => {
-    // Add print metadata
-    const originalTitle = document.title;
-    document.title = `${pageTitle} - ${new Date().toLocaleDateString()}`;
-    
-    // Trigger browser print dialog
-    window.print();
-    
-    // Restore original title
-    document.title = originalTitle;
-  };
-
-  const handleExportPDF = async () => {
-    setIsExporting(true);
-    
-    try {
-      // For PDF export, we'll use the browser's print to PDF functionality
-      // This is the most reliable cross-browser solution
-      const originalTitle = document.title;
-      document.title = `${pageTitle} - ${new Date().toLocaleDateString()}`;
-      
-      // Add a small delay to ensure the title is updated
-      setTimeout(() => {
-        window.print();
-        document.title = originalTitle;
-        setIsExporting(false);
-      }, 100);
-      
-    } catch (error) {
-      console.error('Export error:', error);
-      setIsExporting(false);
+    const content = document.getElementById(targetId);
+    if (content) {
+      const printWindow = window.open('', '', 'height=600,width=800');
+      if (printWindow) {
+        printWindow.document.write('<html><head><title>');
+        printWindow.document.write(filename);
+        printWindow.document.write('</title>');
+        // Include Tailwind CSS for print
+        printWindow.document.write('<script src="https://cdn.tailwindcss.com"></script>');
+        printWindow.document.write('<style>');
+        printWindow.document.write(`
+          body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+          /* Hide elements with print:hidden class when printing */
+          .print\\:hidden { display: none !important; }
+          /* Show elements with hidden print:block class when printing */
+          .hidden.print\\:block { display: block !important; }
+        `);
+        printWindow.document.write('</style></head><body>');
+        printWindow.document.write(content.innerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      } else {
+        // Fallback for pop-up blockers
+        console.error('Pop-up blocked. Please allow pop-ups for this site to print.');
+        // You might want to show a custom message box here instead of alert
+      }
+    } else {
+      console.error(`Content with ID "${targetId}" not found for printing.`);
     }
   };
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <Button
-        onClick={handlePrint}
-        variant={variant}
-        size={size}
-        title={getBilingualLabel("Print Document", "ஆவணத்தை அச்சிடு")}
-        className="print:hidden"
-      >
-        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-        </svg>
-        {getBilingualLabel("Print", "அச்சிடு")}
-      </Button>
-      
-      <Button
-        onClick={handleExportPDF}
-        variant={variant}
-        size={size}
-        isLoading={isExporting}
-        title={getBilingualLabel("Export to PDF", "PDF ஆக ஏற்றுமதி செய்")}
-        className="print:hidden"
-      >
-        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        {getBilingualLabel("PDF", "PDF")}
-      </Button>
-    </div>
+    <Button onClick={handlePrint} variant="primary">
+      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2z"></path>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9H7a2 2 0 00-2 2v4a2 2 0 002 2h10a2 2 0 002-2v-4a2 2 0 00-2-2zM12 18V21M9 3h6"></path>
+      </svg>
+      {getBilingualLabel("Print / Export PDF", "அச்சிடு / PDF ஆக ஏற்றுமதி செய்")}
+    </Button>
   );
 };
 
