@@ -127,6 +127,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: '/consultations'
         },
         {
+          id: 'consultation-details', // புதிய ஐட்டம்
+          label: 'Consultation Details',
+          tamilLabel: 'ஆலோசனை விவரங்கள்',
+          icon: (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+          href: '/consultations/example-id', // Placeholder URL
+          // இது ஒரு Placeholder மற்றும் Consultation Details பக்கத்திற்கு ஒரு சரியான ID தேவை.
+          // பொதுவாக, இது "Consultations List" இலிருந்து ஒரு ஆலோசனையைத் தேர்ந்தெடுப்பதன் மூலம் பெறப்படுகிறது.
+        },
+        {
           id: 'reports',
           label: 'Reports & Analytics',
           tamilLabel: 'அறிக்கைகள் & பகுப்பாய்வு',
@@ -207,8 +220,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           className={`
             flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
             ${level > 0 ? 'ml-6' : ''}
-            ${isActive 
-              ? 'bg-sky-100 text-sky-700 border-r-2 border-sky-500' 
+            ${isActive
+              ? 'bg-sky-100 text-sky-700 border-r-2 border-sky-500'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }
             ${collapsed && level === 0 ? 'justify-center' : ''}
