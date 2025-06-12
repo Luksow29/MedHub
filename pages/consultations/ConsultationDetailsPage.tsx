@@ -327,7 +327,8 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: p.updated_at
         })));
       }
-    } catch (err: any) {
+    }
+    catch (err: any) {
       console.error('Error fetching consultation data:', err);
       setError(err.message);
     } finally {
@@ -535,7 +536,6 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
       fetchConsultationData();
       setEditingPrescription(null);
     } catch (err: any) {
-      setError(err.message);
       console.error('Error updating prescription:', err);
       setError(err.message);
     }
@@ -1698,6 +1698,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
             patientId={consultation.patientId}
             onSubmit={handleUpdateClinicalNotes}
             onCancel={() => setIsEditClinicalNotesModalOpen(false)}
+            isOpen={isClinicalNotesModalOpen} // isOpen prop ஐ இங்கே சேர்க்கிறோம்
           />
         </Modal>
       )}
