@@ -3,9 +3,9 @@ import {
   Diagnosis, 
   NewDbDiagnosis, 
   UpdateDbDiagnosis,
-  IcdVersion,
   IcdCode
 } from '../../types';
+import { IcdVersion } from '../../types/consultation';
 import Button from '../shared/Button';
 import { formatDateToInput } from '../../utils/dateHelpers';
 import { searchIcdCodes } from '../../api/diagnoses';
