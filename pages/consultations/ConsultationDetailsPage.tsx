@@ -31,7 +31,7 @@ import {
   ClinicalNote,
   NewDbClinicalNote,
   UpdateDbClinicalNote,
-  VitalSigns,
+  VitalSign, // VitalSigns to VitalSign
   NewDbVitalSigns,
   UpdateDbVitalSigns,
   Treatment,
@@ -46,7 +46,7 @@ import {
   ConsultationDocument,
   NewDbConsultationDocument,
   Patient
-} from '../../types';
+} from '../../types/consultation'; // வகைகளை consultation.ts இலிருந்து இறக்குமதி செய்கிறோம்
 
 // API functions
 import * as ConsultationAPI from '../../api/consultations';
@@ -67,24 +67,24 @@ interface ConsultationDetailsPageProps {
 const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user, onLogout }) => {
   const { consultationId } = useParams<{ consultationId: string }>();
   const navigate = useNavigate();
-  
+
   // State for consultation and related data
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [clinicalNote, setClinicalNote] = useState<ClinicalNote | null>(null);
-  const [vitalSigns, setVitalSigns] = useState<VitalSigns | null>(null);
+  const [vitalSigns, setVitalSigns] = useState<VitalSign | null>(null); // VitalSigns to VitalSign
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [documents, setDocuments] = useState<ConsultationDocument[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
-  
+
   // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'soap' | 'diagnoses' | 'treatments' | 'prescriptions' | 'referrals' | 'documents'>('overview');
-  
+
   // Modal states
   const [isEditConsultationModalOpen, setIsEditConsultationModalOpen] = useState(false);
   const [isAddDiagnosisModalOpen, setIsAddDiagnosisModalOpen] = useState(false);
@@ -94,13 +94,13 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
   const [isAddPrescriptionModalOpen, setIsAddPrescriptionModalOpen] = useState(false);
   const [isAddReferralModalOpen, setIsAddReferralModalOpen] = useState(false);
   const [isUploadDocumentModalOpen, setIsUploadDocumentModalOpen] = useState(false);
-  
+
   // Edit states
   const [editingDiagnosis, setEditingDiagnosis] = useState<Diagnosis | null>(null);
   const [editingTreatment, setEditingTreatment] = useState<Treatment | null>(null);
   const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null);
   const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
-  
+
   // Section expansion states
   const [isVitalSignsExpanded, setIsVitalSignsExpanded] = useState(true);
   const [isDiagnosesExpanded, setIsDiagnosesExpanded] = useState(true);
@@ -109,21 +109,21 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
   const [isPrescriptionsExpanded, setIsPrescriptionsExpanded] = useState(true);
   const [isReferralsExpanded, setIsReferralsExpanded] = useState(true);
   const [isDocumentsExpanded, setIsDocumentsExpanded] = useState(true);
-  
+
   const getBilingualLabel = (english: string, tamil: string) => `${english} (${tamil})`;
 
   // Fetch all consultation data
   const fetchConsultationData = useCallback(async () => {
     if (!consultationId) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Fetch consultation details
       const { data: consultationData, error: consultationError } = await ConsultationAPI.getConsultationById(consultationId, user.id);
       if (consultationError) throw consultationError;
-      
+
       if (consultationData) {
         setConsultation({
           id: consultationData.id,
@@ -145,7 +145,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           patientPhone: consultationData.patients?.contact_phone,
           patientEmail: consultationData.patients?.contact_email
         });
-        
+
         // Fetch patient details
         if (consultationData.patient_id) {
           const { data: patientData, error: patientError } = await PatientAPI.getPatientById(consultationData.patient_id, user.id);
@@ -169,11 +169,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           }
         }
       }
-      
+
       // Fetch diagnoses
       const { data: diagnosesData, error: diagnosesError } = await DiagnosesAPI.getDiagnosesByConsultationId(consultationId, user.id);
       if (diagnosesError) throw diagnosesError;
-      
+
       if (diagnosesData) {
         setDiagnoses(diagnosesData.map(d => ({
           id: d.id,
@@ -190,7 +190,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: d.updated_at
         })));
       }
-      
+
       // Fetch clinical notes
       const { data: clinicalNoteData, error: clinicalNoteError } = await ClinicalNotesAPI.getClinicalNotesByConsultationId(consultationId, user.id);
       if (!clinicalNoteError && clinicalNoteData) {
@@ -207,38 +207,17 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: clinicalNoteData.updated_at
         });
       }
-      
+
       // Fetch vital signs
       const { data: vitalSignsData, error: vitalSignsError } = await VitalSignsAPI.getVitalSignsByConsultationId(consultationId, user.id);
       if (!vitalSignsError && vitalSignsData) {
-        setVitalSigns({
-          id: vitalSignsData.id,
-          userId: vitalSignsData.user_id,
-          consultationId: vitalSignsData.consultation_id,
-          patientId: vitalSignsData.patient_id,
-          temperature: vitalSignsData.temperature,
-          temperatureUnit: vitalSignsData.temperature_unit,
-          heartRate: vitalSignsData.heart_rate,
-          respiratoryRate: vitalSignsData.respiratory_rate,
-          bloodPressureSystolic: vitalSignsData.blood_pressure_systolic,
-          bloodPressureDiastolic: vitalSignsData.blood_pressure_diastolic,
-          oxygenSaturation: vitalSignsData.oxygen_saturation,
-          height: vitalSignsData.height,
-          heightUnit: vitalSignsData.height_unit,
-          weight: vitalSignsData.weight,
-          weightUnit: vitalSignsData.weight_unit,
-          bmi: vitalSignsData.bmi,
-          painScore: vitalSignsData.pain_score,
-          notes: vitalSignsData.notes,
-          createdAt: vitalSignsData.created_at,
-          updatedAt: vitalSignsData.updated_at
-        });
+        setVitalSigns(vitalSignsData); // vitalSignsData is already a VitalSign object or null
       }
-      
+
       // Fetch treatments
       const { data: treatmentsData, error: treatmentsError } = await TreatmentsAPI.getTreatmentsByConsultationId(consultationId, user.id);
       if (treatmentsError) throw treatmentsError;
-      
+
       if (treatmentsData) {
         setTreatments(treatmentsData.map(t => ({
           id: t.id,
@@ -256,11 +235,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: t.updated_at
         })));
       }
-      
+
       // Fetch prescriptions
       const { data: prescriptionsData, error: prescriptionsError } = await PrescriptionsAPI.getPrescriptionsByConsultationId(consultationId, user.id);
       if (prescriptionsError) throw prescriptionsError;
-      
+
       if (prescriptionsData) {
         setPrescriptions(prescriptionsData.map(p => ({
           id: p.id,
@@ -280,11 +259,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: p.updated_at
         })));
       }
-      
+
       // Fetch referrals
       const { data: referralsData, error: referralsError } = await ReferralsAPI.getReferralsByConsultationId(consultationId, user.id);
       if (referralsError) throw referralsError;
-      
+
       if (referralsData) {
         setReferrals(referralsData.map(r => ({
           id: r.id,
@@ -302,11 +281,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: r.updated_at
         })));
       }
-      
+
       // Fetch documents
       const { data: documentsData, error: documentsError } = await ConsultationDocumentsAPI.getDocumentsByConsultationId(consultationId, user.id);
       if (documentsError) throw documentsError;
-      
+
       if (documentsData) {
         setDocuments(documentsData.map(d => ({
           id: d.id,
@@ -321,11 +300,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           updatedAt: d.updated_at
         })));
       }
-      
+
       // Fetch all patients for forms
       const { data: patientsData, error: patientsError } = await PatientAPI.getAllPatients(user.id);
       if (patientsError) throw patientsError;
-      
+
       if (patientsData) {
         setPatients(patientsData.map(p => ({
           id: p.id,
@@ -359,11 +338,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
   // Consultation operations
   const handleUpdateConsultation = async (data: UpdateDbConsultation) => {
     if (!consultationId) return;
-    
+
     try {
       const { error } = await ConsultationAPI.updateConsultation(consultationId, data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setIsEditConsultationModalOpen(false);
     } catch (err: any) {
@@ -374,11 +353,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleUpdateConsultationStatus = async (status: ConsultationStatus) => {
     if (!consultationId) return;
-    
+
     try {
       const { error } = await ConsultationAPI.updateConsultationStatus(consultationId, status, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error updating consultation status:', err);
@@ -391,7 +370,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
     try {
       const { error } = await DiagnosesAPI.addDiagnosis(data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setIsAddDiagnosisModalOpen(false);
     } catch (err: any) {
@@ -402,11 +381,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleUpdateDiagnosis = async (data: UpdateDbDiagnosis) => {
     if (!editingDiagnosis) return;
-    
+
     try {
       const { error } = await DiagnosesAPI.updateDiagnosis(editingDiagnosis.id, data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setEditingDiagnosis(null);
     } catch (err: any) {
@@ -417,11 +396,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleDeleteDiagnosis = async (id: string) => {
     if (!window.confirm(getBilingualLabel('Are you sure you want to delete this diagnosis?', 'இந்த நோயறிதலை நீக்க விரும்புகிறீர்களா?'))) return;
-    
+
     try {
       const { error } = await DiagnosesAPI.deleteDiagnosis(id, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error deleting diagnosis:', err);
@@ -431,11 +410,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleSetPrimaryDiagnosis = async (diagnosisId: string) => {
     if (!consultationId) return;
-    
+
     try {
       const { error } = await DiagnosesAPI.setPrimaryDiagnosis(diagnosisId, consultationId, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error setting primary diagnosis:', err);
@@ -455,7 +434,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
         const { error } = await ClinicalNotesAPI.addClinicalNotes(data as NewDbClinicalNote, user.id);
         if (error) throw error;
       }
-      
+
       fetchConsultationData();
       setIsEditClinicalNotesModalOpen(false);
     } catch (err: any) {
@@ -476,7 +455,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
         const { error } = await VitalSignsAPI.addVitalSigns(data as NewDbVitalSigns, user.id);
         if (error) throw error;
       }
-      
+
       fetchConsultationData();
       setIsEditVitalSignsModalOpen(false);
     } catch (err: any) {
@@ -490,7 +469,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
     try {
       const { error } = await TreatmentsAPI.addTreatment(data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setIsAddTreatmentModalOpen(false);
     } catch (err: any) {
@@ -501,11 +480,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleUpdateTreatment = async (data: UpdateDbTreatment) => {
     if (!editingTreatment) return;
-    
+
     try {
       const { error } = await TreatmentsAPI.updateTreatment(editingTreatment.id, data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setEditingTreatment(null);
     } catch (err: any) {
@@ -516,11 +495,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleDeleteTreatment = async (id: string) => {
     if (!window.confirm(getBilingualLabel('Are you sure you want to delete this treatment?', 'இந்த சிகிச்சையை நீக்க விரும்புகிறீர்களா?'))) return;
-    
+
     try {
       const { error } = await TreatmentsAPI.deleteTreatment(id, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error deleting treatment:', err);
@@ -533,7 +512,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
     try {
       const { error } = await PrescriptionsAPI.addPrescription(data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setIsAddPrescriptionModalOpen(false);
     } catch (err: any) {
@@ -544,11 +523,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleUpdatePrescription = async (data: UpdateDbPrescription) => {
     if (!editingPrescription) return;
-    
+
     try {
       const { error } = await PrescriptionsAPI.updatePrescription(editingPrescription.id, data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setEditingPrescription(null);
     } catch (err: any) {
@@ -559,11 +538,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleDeletePrescription = async (id: string) => {
     if (!window.confirm(getBilingualLabel('Are you sure you want to delete this prescription?', 'இந்த மருந்து சீட்டை நீக்க விரும்புகிறீர்களா?'))) return;
-    
+
     try {
       const { error } = await PrescriptionsAPI.deletePrescription(id, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error deleting prescription:', err);
@@ -576,7 +555,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
     try {
       const { error } = await ReferralsAPI.addReferral(data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setIsAddReferralModalOpen(false);
     } catch (err: any) {
@@ -587,11 +566,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleUpdateReferral = async (data: UpdateDbReferral) => {
     if (!editingReferral) return;
-    
+
     try {
       const { error } = await ReferralsAPI.updateReferral(editingReferral.id, data, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
       setEditingReferral(null);
     } catch (err: any) {
@@ -602,11 +581,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleDeleteReferral = async (id: string) => {
     if (!window.confirm(getBilingualLabel('Are you sure you want to delete this referral?', 'இந்த பரிந்துரையை நீக்க விரும்புகிறீர்களா?'))) return;
-    
+
     try {
       const { error } = await ReferralsAPI.deleteReferral(id, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error deleting referral:', err);
@@ -616,21 +595,22 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   // Document operations
   const handleUploadDocument = async (
-    data: Omit<NewDbConsultationDocument, 'file_name' | 'file_path'>, 
+    data: Omit<NewDbConsultationDocument, 'file_name' | 'file_path' | 'uploaded_at'>,
     file: File
   ) => {
     if (!consultationId || !consultation?.patientId) return;
-    
+
     try {
       const { error } = await ConsultationDocumentsAPI.uploadConsultationDocument(
-        data,
         file,
         consultationId,
         consultation.patientId,
-        user.id
+        user.id,
+        data.document_type,
+        data.description
       );
       if (error) throw error;
-      
+
       fetchConsultationData();
       setIsUploadDocumentModalOpen(false);
     } catch (err: any) {
@@ -641,11 +621,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleDeleteDocument = async (id: string) => {
     if (!window.confirm(getBilingualLabel('Are you sure you want to delete this document?', 'இந்த ஆவணத்தை நீக்க விரும்புகிறீர்களா?'))) return;
-    
+
     try {
       const { error } = await ConsultationDocumentsAPI.deleteConsultationDocument(id, user.id);
       if (error) throw error;
-      
+
       fetchConsultationData();
     } catch (err: any) {
       console.error('Error deleting document:', err);
@@ -656,15 +636,13 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
   // Generate reports
   const handleGenerateConsultationSummary = async () => {
     if (!consultationId) return;
-    
+
     try {
       const { data, error } = await ConsultationAPI.generateConsultationSummary(consultationId, user.id);
       if (error) throw error;
-      
-      // In a real app, you would generate a PDF or display a printable view
+
       console.log('Consultation summary:', data);
-      
-      // For now, just open the print dialog
+
       window.print();
     } catch (err: any) {
       console.error('Error generating consultation summary:', err);
@@ -676,11 +654,9 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
     try {
       const { data, error } = await PrescriptionsAPI.generatePrescriptionDocument(prescriptionId, user.id);
       if (error) throw error;
-      
-      // In a real app, you would generate a PDF or display a printable view
+
       console.log('Prescription document:', data);
-      
-      // For now, just open the print dialog
+
       window.print();
     } catch (err: any) {
       console.error('Error generating prescription:', err);
@@ -692,11 +668,9 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
     try {
       const { data, error } = await ReferralsAPI.generateReferralLetter(referralId, user.id);
       if (error) throw error;
-      
-      // In a real app, you would generate a PDF or display a printable view
+
       console.log('Referral letter:', data);
-      
-      // For now, just open the print dialog
+
       window.print();
     } catch (err: any) {
       console.error('Error generating referral letter:', err);
@@ -706,17 +680,16 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   const handleGenerateMedicalCertificate = async () => {
     if (!consultationId) return;
-    
-    // Get start and end dates from user
+
     const startDate = prompt(getBilingualLabel('Enter start date (YYYY-MM-DD):', 'தொடக்க தேதியை உள்ளிடவும் (YYYY-MM-DD):'), consultation?.consultationDate);
     if (!startDate) return;
-    
+
     const endDate = prompt(getBilingualLabel('Enter end date (YYYY-MM-DD):', 'முடிவு தேதியை உள்ளிடவும் (YYYY-MM-DD):'), startDate);
     if (!endDate) return;
-    
+
     const reason = prompt(getBilingualLabel('Enter reason for medical certificate:', 'மருத்துவ சான்றிதழுக்கான காரணத்தை உள்ளிடவும்:'), '');
     if (reason === null) return;
-    
+
     try {
       const { data, error } = await ConsultationDocumentsAPI.generateMedicalCertificate(
         consultationId,
@@ -726,11 +699,9 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
         reason
       );
       if (error) throw error;
-      
-      // In a real app, you would generate a PDF or display a printable view
+
       console.log('Medical certificate:', data);
-      
-      // For now, just open the print dialog
+
       window.print();
     } catch (err: any) {
       console.error('Error generating medical certificate:', err);
@@ -741,14 +712,13 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
   // Schedule follow-up
   const handleScheduleFollowUp = async () => {
     if (!consultationId) return;
-    
-    // Get follow-up date from user
+
     const followUpDate = prompt(getBilingualLabel('Enter follow-up date (YYYY-MM-DD):', 'பின்தொடர்தல் தேதியை உள்ளிடவும் (YYYY-MM-DD):'));
     if (!followUpDate) return;
-    
+
     const followUpNotes = prompt(getBilingualLabel('Enter follow-up notes:', 'பின்தொடர்தல் குறிப்புகளை உள்ளிடவும்:'), '');
     if (followUpNotes === null) return;
-    
+
     try {
       const { data, error } = await ConsultationAPI.scheduleFollowUp(
         consultationId,
@@ -757,7 +727,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
         user.id
       );
       if (error) throw error;
-      
+
       fetchConsultationData();
       alert(getBilingualLabel('Follow-up appointment scheduled successfully!', 'பின்தொடர்தல் சந்திப்பு வெற்றிகரமாக திட்டமிடப்பட்டது!'));
     } catch (err: any) {
@@ -869,7 +839,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-semibold text-slate-800">{consultation.patientName}</h2>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(consultation.status)}`}>
-                  {consultation.status}
+                  {getBilingualLabel(consultation.status, consultation.status)}
                 </span>
               </div>
               <p className="text-slate-600 mt-1">
@@ -879,7 +849,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 {getBilingualLabel("Physician", "மருத்துவர்")}: {consultation.attendingPhysician}
               </p>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 print:hidden">
               <Button
                 onClick={() => setIsEditConsultationModalOpen(true)}
@@ -891,7 +861,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 </svg>
                 {getBilingualLabel("Edit", "திருத்து")}
               </Button>
-              
+
               {consultation.status === ConsultationStatus.SCHEDULED && (
                 <Button
                   onClick={() => handleUpdateConsultationStatus(ConsultationStatus.IN_PROGRESS)}
@@ -905,7 +875,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                   {getBilingualLabel("Start Consultation", "ஆலோசனையைத் தொடங்கு")}
                 </Button>
               )}
-              
+
               {consultation.status === ConsultationStatus.IN_PROGRESS && (
                 <Button
                   onClick={() => handleUpdateConsultationStatus(ConsultationStatus.COMPLETED)}
@@ -918,7 +888,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                   {getBilingualLabel("Complete Consultation", "ஆலோசனையை முடிக்கவும்")}
                 </Button>
               )}
-              
+
               {(consultation.status === ConsultationStatus.SCHEDULED || consultation.status === ConsultationStatus.IN_PROGRESS) && (
                 <Button
                   onClick={() => handleUpdateConsultationStatus(ConsultationStatus.CANCELLED)}
@@ -931,7 +901,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                   {getBilingualLabel("Cancel", "ரத்துசெய்")}
                 </Button>
               )}
-              
+
               <Button
                 onClick={handleScheduleFollowUp}
                 variant="secondary"
@@ -942,7 +912,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 </svg>
                 {getBilingualLabel("Schedule Follow-up", "பின்தொடர்தலை திட்டமிடு")}
               </Button>
-              
+
               <PrintExportButton
                 targetId="consultation-details-printable-content"
                 filename={`Consultation_${consultation.patientName.replace(/\s+/g, '_')}_${consultation.consultationDate}.pdf`}
@@ -951,7 +921,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               />
             </div>
           </div>
-          
+
           {/* Chief Complaint */}
           <div className="bg-white p-6 rounded-lg shadow-md print:border print:border-black">
             <h3 className="text-lg font-semibold text-slate-800 mb-2">
@@ -959,7 +929,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
             </h3>
             <p className="text-slate-700">{consultation.chiefComplaint}</p>
           </div>
-          
+
           {/* Follow-up Information */}
           {consultation.followUpDate && (
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 print:border print:border-black">
@@ -976,7 +946,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               )}
             </div>
           )}
-          
+
           {/* Vital Signs Section */}
           <CollapsibleSection
             title={getBilingualLabel("Vital Signs", "உயிர் அறிகுறிகள்")}
@@ -992,112 +962,106 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 variant="primary"
                 size="sm"
               >
-                {vitalSigns ? 
-                  getBilingualLabel("Update Vital Signs", "உயிர் அறிகுறிகளைப் புதுப்பிக்கவும்") : 
+                {vitalSigns ?
+                  getBilingualLabel("Update Vital Signs", "உயிர் அறிகுறிகளைப் புதுப்பிக்கவும்") :
                   getBilingualLabel("Record Vital Signs", "உயிர் அறிகுறிகளைப் பதிவுசெய்யவும்")
                 }
               </Button>
             </div>
-            
+
             {vitalSigns ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Temperature */}
-                {vitalSigns.temperature && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Temperature", "வெப்பநிலை")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.temperature} {vitalSigns.temperatureUnit}
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Temperature", "வெப்பநிலை")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.temperature !== null ? `${vitalSigns.temperature} ${vitalSigns.temperatureUnit}` : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Heart Rate */}
-                {vitalSigns.heartRate && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Heart Rate", "இதய துடிப்பு")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.heartRate} bpm
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Heart Rate", "இதய துடிப்பு")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.heartRate !== null ? `${vitalSigns.heartRate} bpm` : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Blood Pressure */}
-                {vitalSigns.bloodPressureSystolic && vitalSigns.bloodPressureDiastolic && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Blood Pressure", "இரத்த அழுத்தம்")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.bloodPressureSystolic}/{vitalSigns.bloodPressureDiastolic} mmHg
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Blood Pressure", "இரத்த அழுத்தம்")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.bloodPressureSystolic !== null && vitalSigns.bloodPressureDiastolic !== null
+                      ? `${vitalSigns.bloodPressureSystolic}/${vitalSigns.bloodPressureDiastolic} mmHg`
+                      : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Respiratory Rate */}
-                {vitalSigns.respiratoryRate && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Respiratory Rate", "சுவாச விகிதம்")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.respiratoryRate} breaths/min
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Respiratory Rate", "சுவாச விகிதம்")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.respiratoryRate !== null ? `${vitalSigns.respiratoryRate} breaths/min` : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Oxygen Saturation */}
-                {vitalSigns.oxygenSaturation && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Oxygen Saturation", "ஆக்ஸிஜன் செறிவு")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.oxygenSaturation}%
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Oxygen Saturation", "ஆக்ஸிஜன் செறிவு")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.oxygenSaturation !== null ? `${vitalSigns.oxygenSaturation}%` : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Height */}
-                {vitalSigns.height && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Height", "உயரம்")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.height} {vitalSigns.heightUnit}
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Height", "உயரம்")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.height !== null ? `${vitalSigns.height} ${vitalSigns.heightUnit}` : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Weight */}
-                {vitalSigns.weight && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Weight", "எடை")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.weight} {vitalSigns.weightUnit}
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Weight", "எடை")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.weight !== null ? `${vitalSigns.weight} ${vitalSigns.weightUnit}` : 'N/A'}
+                  </p>
+                </div>
+
                 {/* BMI */}
-                {vitalSigns.bmi && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("BMI", "உடல் நிறை குறியீடு")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.bmi}
-                    </p>
-                  </div>
-                )}
-                
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("BMI", "உடல் நிறை குறியீடு")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.bmi !== null ? vitalSigns.bmi : 'N/A'}
+                  </p>
+                </div>
+
                 {/* Pain Score */}
-                {vitalSigns.painScore !== null && (
-                  <div className="bg-white p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm text-slate-500">{getBilingualLabel("Pain Score", "வலி மதிப்பெண்")}</p>
-                    <p className="text-xl font-semibold text-slate-800">
-                      {vitalSigns.painScore}/10
-                    </p>
+                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm text-slate-500">{getBilingualLabel("Pain Score", "வலி மதிப்பெண்")}</p>
+                  <p className="text-xl font-semibold text-slate-800">
+                    {vitalSigns.painScore !== null ? `${vitalSigns.painScore}/10` : 'N/A'}
+                  </p>
+                  {vitalSigns.painScore !== null && (
                     <div className="mt-2 w-full bg-slate-200 rounded-full h-2.5">
-                      <div 
+                      <div
                         className={`h-2.5 rounded-full ${
-                          vitalSigns.painScore <= 3 ? 'bg-green-500' : 
-                          vitalSigns.painScore <= 6 ? 'bg-yellow-500' : 
+                          vitalSigns.painScore <= 3 ? 'bg-green-500' :
+                          vitalSigns.painScore <= 6 ? 'bg-yellow-500' :
                           'bg-red-500'
-                        }`} 
+                        }`}
                         style={{ width: `${(vitalSigns.painScore / 10) * 100}%` }}
                       ></div>
                     </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                {vitalSigns.notes && (
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 md:col-span-3">
+                    <p className="text-sm text-slate-500">{getBilingualLabel("Notes", "குறிப்புகள்")}</p>
+                    <p className="text-base text-slate-800">{vitalSigns.notes}</p>
                   </div>
                 )}
               </div>
@@ -1109,7 +1073,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Clinical Notes Section */}
           <CollapsibleSection
             title={getBilingualLabel("Clinical Notes (SOAP)", "மருத்துவக் குறிப்புகள் (SOAP)")}
@@ -1125,13 +1089,13 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 variant="primary"
                 size="sm"
               >
-                {clinicalNote ? 
-                  getBilingualLabel("Update Notes", "குறிப்புகளைப் புதுப்பிக்கவும்") : 
+                {clinicalNote ?
+                  getBilingualLabel("Update Notes", "குறிப்புகளைப் புதுப்பிக்கவும்") :
                   getBilingualLabel("Add Notes", "குறிப்புகளைச் சேர்")
                 }
               </Button>
             </div>
-            
+
             {clinicalNote ? (
               <div className="space-y-4">
                 {/* Subjective */}
@@ -1143,7 +1107,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                     <p className="text-slate-700 whitespace-pre-line">{clinicalNote.subjective}</p>
                   </div>
                 )}
-                
+
                 {/* Objective */}
                 {clinicalNote.objective && (
                   <div className="bg-white p-4 rounded-lg border border-slate-200">
@@ -1153,7 +1117,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                     <p className="text-slate-700 whitespace-pre-line">{clinicalNote.objective}</p>
                   </div>
                 )}
-                
+
                 {/* Assessment */}
                 {clinicalNote.assessment && (
                   <div className="bg-white p-4 rounded-lg border border-slate-200">
@@ -1163,7 +1127,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                     <p className="text-slate-700 whitespace-pre-line">{clinicalNote.assessment}</p>
                   </div>
                 )}
-                
+
                 {/* Plan */}
                 {clinicalNote.plan && (
                   <div className="bg-white p-4 rounded-lg border border-slate-200">
@@ -1182,7 +1146,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Diagnoses Section */}
           <CollapsibleSection
             title={getBilingualLabel("Diagnoses", "நோயறிதல்கள்")}
@@ -1201,7 +1165,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 {getBilingualLabel("Add Diagnosis", "நோயறிதலைச் சேர்")}
               </Button>
             </div>
-            
+
             {diagnoses.length > 0 ? (
               <div className="space-y-4">
                 <table className="min-w-full divide-y divide-slate-200">
@@ -1293,7 +1257,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Treatments Section */}
           <CollapsibleSection
             title={getBilingualLabel("Treatments", "சிகிச்சைகள்")}
@@ -1312,7 +1276,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 {getBilingualLabel("Add Treatment", "சிகிச்சையைச் சேர்")}
               </Button>
             </div>
-            
+
             {treatments.length > 0 ? (
               <div className="space-y-4">
                 {treatments.map((treatment) => (
@@ -1377,7 +1341,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Prescriptions Section */}
           <CollapsibleSection
             title={getBilingualLabel("Prescriptions", "மருந்து சீட்டுகள்")}
@@ -1396,7 +1360,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 {getBilingualLabel("Add Prescription", "மருந்து சீட்டைச் சேர்")}
               </Button>
             </div>
-            
+
             {prescriptions.length > 0 ? (
               <div className="space-y-4">
                 {prescriptions.map((prescription) => (
@@ -1465,7 +1429,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Referrals Section */}
           <CollapsibleSection
             title={getBilingualLabel("Referrals", "பரிந்துரைகள்")}
@@ -1484,7 +1448,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 {getBilingualLabel("Add Referral", "பரிந்துரையைச் சேர்")}
               </Button>
             </div>
-            
+
             {referrals.length > 0 ? (
               <div className="space-y-4">
                 {referrals.map((referral) => (
@@ -1569,7 +1533,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Documents Section */}
           <CollapsibleSection
             title={getBilingualLabel("Documents", "ஆவணங்கள்")}
@@ -1603,7 +1567,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 </Button>
               </div>
             </div>
-            
+
             {documents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {documents.map((document) => (
@@ -1612,9 +1576,9 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                       <div>
                         <h4 className="font-medium text-slate-800">{document.documentType}</h4>
                         <p className="text-sm text-slate-600 mt-1">
-                          <a 
-                            href={document.filePath} 
-                            target="_blank" 
+                          <a
+                            href={document.filePath}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-sky-600 hover:underline"
                           >
@@ -1651,7 +1615,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               </div>
             )}
           </CollapsibleSection>
-          
+
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3 pt-4 print:hidden">
             <Button onClick={() => navigate('/consultations')} variant="secondary">
@@ -1661,11 +1625,12 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
               targetId="consultation-details-printable-content"
               filename={`Consultation_${consultation.patientName.replace(/\s+/g, '_')}_${consultation.consultationDate}.pdf`}
               variant="primary"
+              size="sm"
             />
           </div>
         </div>
       </PrintablePageWrapper>
-      
+
       {/* Modals */}
       <Modal
         isOpen={isEditConsultationModalOpen}
@@ -1679,20 +1644,30 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           onCancel={() => setIsEditConsultationModalOpen(false)}
         />
       </Modal>
-      
-      <Modal
-        isOpen={isAddDiagnosisModalOpen}
-        onClose={() => setIsAddDiagnosisModalOpen(false)}
-        title={getBilingualLabel("Add Diagnosis", "நோயறிதலைச் சேர்")}
-      >
-        <DiagnosisForm
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleAddDiagnosis}
-          onCancel={() => setIsAddDiagnosisModalOpen(false)}
-        />
-      </Modal>
-      
+
+      {isVitalSignsFormOpen && consultation && (
+        <Modal title={vitalSigns?.id ? getBilingualLabel("Edit Vital Signs", "முக்கிய அறிகுறிகளை திருத்து") : getBilingualLabel("Add Vital Signs", "முக்கிய அறிகுறிகளைச் சேர்")} onClose={() => setIsEditVitalSignsModalOpen(false)}>
+          <VitalSignsForm
+            vitalSigns={vitalSigns}
+            consultationId={consultation.id}
+            patientId={consultation.patientId}
+            onSubmit={handleUpdateVitalSigns}
+            onCancel={() => setIsEditVitalSignsModalOpen(false)}
+          />
+        </Modal>
+      )}
+
+      {isDiagnosisFormOpen && consultation && (
+        <Modal title={getBilingualLabel("Add Diagnosis", "நோயறிதலைச் சேர்")} onClose={() => setIsAddDiagnosisModalOpen(false)}>
+          <DiagnosisForm
+            consultationId={consultationId!}
+            patientId={consultation.patientId}
+            onSubmit={handleAddDiagnosis}
+            onCancel={() => setIsAddDiagnosisModalOpen(false)}
+          />
+        </Modal>
+      )}
+
       {editingDiagnosis && (
         <Modal
           isOpen={!!editingDiagnosis}
@@ -1708,48 +1683,30 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           />
         </Modal>
       )}
-      
-      <Modal
-        isOpen={isEditClinicalNotesModalOpen}
-        onClose={() => setIsEditClinicalNotesModalOpen(false)}
-        title={getBilingualLabel("Clinical Notes", "மருத்துவக் குறிப்புகள்")}
-      >
-        <ClinicalNotesForm
-          clinicalNote={clinicalNote}
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleUpdateClinicalNotes}
-          onCancel={() => setIsEditClinicalNotesModalOpen(false)}
-        />
-      </Modal>
-      
-      <Modal
-        isOpen={isEditVitalSignsModalOpen}
-        onClose={() => setIsEditVitalSignsModalOpen(false)}
-        title={getBilingualLabel("Vital Signs", "உயிர் அறிகுறிகள்")}
-      >
-        <VitalSignsForm
-          vitalSigns={vitalSigns}
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleUpdateVitalSigns}
-          onCancel={() => setIsEditVitalSignsModalOpen(false)}
-        />
-      </Modal>
-      
-      <Modal
-        isOpen={isAddTreatmentModalOpen}
-        onClose={() => setIsAddTreatmentModalOpen(false)}
-        title={getBilingualLabel("Add Treatment", "சிகிச்சையைச் சேர்")}
-      >
-        <TreatmentForm
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleAddTreatment}
-          onCancel={() => setIsAddTreatmentModalOpen(false)}
-        />
-      </Modal>
-      
+
+      {isClinicalNotesModalOpen && consultation && (
+        <Modal title={getBilingualLabel("Clinical Notes", "மருத்துவக் குறிப்புகள்")} onClose={() => setIsEditClinicalNotesModalOpen(false)}>
+          <ClinicalNotesForm
+            clinicalNote={clinicalNote}
+            consultationId={consultation.id}
+            patientId={consultation.patientId}
+            onSubmit={handleUpdateClinicalNotes}
+            onCancel={() => setIsEditClinicalNotesModalOpen(false)}
+          />
+        </Modal>
+      )}
+
+      {isAddTreatmentModalOpen && consultation && (
+        <Modal title={getBilingualLabel("Add Treatment", "சிகிச்சையைச் சேர்")} onClose={() => setIsAddTreatmentModalOpen(false)}>
+          <TreatmentForm
+            consultationId={consultationId!}
+            patientId={consultation.patientId}
+            onSubmit={handleAddTreatment}
+            onCancel={() => setIsAddTreatmentModalOpen(false)}
+          />
+        </Modal>
+      )}
+
       {editingTreatment && (
         <Modal
           isOpen={!!editingTreatment}
@@ -1765,20 +1722,18 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           />
         </Modal>
       )}
-      
-      <Modal
-        isOpen={isAddPrescriptionModalOpen}
-        onClose={() => setIsAddPrescriptionModalOpen(false)}
-        title={getBilingualLabel("Add Prescription", "மருந்து சீட்டைச் சேர்")}
-      >
-        <PrescriptionForm
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleAddPrescription}
-          onCancel={() => setIsAddPrescriptionModalOpen(false)}
-        />
-      </Modal>
-      
+
+      {isAddPrescriptionModalOpen && consultation && (
+        <Modal title={getBilingualLabel("Add Prescription", "மருந்து சீட்டைச் சேர்")} onClose={() => setIsAddPrescriptionModalOpen(false)}>
+          <PrescriptionForm
+            consultationId={consultationId!}
+            patientId={consultation.patientId}
+            onSubmit={handleAddPrescription}
+            onCancel={() => setIsAddPrescriptionModalOpen(false)}
+          />
+        </Modal>
+      )}
+
       {editingPrescription && (
         <Modal
           isOpen={!!editingPrescription}
@@ -1794,20 +1749,18 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           />
         </Modal>
       )}
-      
-      <Modal
-        isOpen={isAddReferralModalOpen}
-        onClose={() => setIsAddReferralModalOpen(false)}
-        title={getBilingualLabel("Add Referral", "பரிந்துரையைச் சேர்")}
-      >
-        <ReferralForm
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleAddReferral}
-          onCancel={() => setIsAddReferralModalOpen(false)}
-        />
-      </Modal>
-      
+
+      {isAddReferralModalOpen && consultation && (
+        <Modal title={getBilingualLabel("Add Referral", "பரிந்துரையைச் சேர்")} onClose={() => setIsAddReferralModalOpen(false)}>
+          <ReferralForm
+            consultationId={consultationId!}
+            patientId={consultation.patientId}
+            onSubmit={handleAddReferral}
+            onCancel={() => setIsAddReferralModalOpen(false)}
+          />
+        </Modal>
+      )}
+
       {editingReferral && (
         <Modal
           isOpen={!!editingReferral}
@@ -1823,19 +1776,17 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
           />
         </Modal>
       )}
-      
-      <Modal
-        isOpen={isUploadDocumentModalOpen}
-        onClose={() => setIsUploadDocumentModalOpen(false)}
-        title={getBilingualLabel("Upload Document", "ஆவணத்தைப் பதிவேற்று")}
-      >
-        <ConsultationDocumentUpload
-          consultationId={consultationId!}
-          patientId={consultation.patientId}
-          onSubmit={handleUploadDocument}
-          onCancel={() => setIsUploadDocumentModalOpen(false)}
-        />
-      </Modal>
+
+      {isUploadDocumentModalOpen && consultation && (
+        <Modal title={getBilingualLabel("Upload Document", "ஆவணத்தைப் பதிவேற்று")} onClose={() => setIsUploadDocumentModalOpen(false)}>
+          <ConsultationDocumentUpload
+            consultationId={consultation.id}
+            patientId={consultation.patientId}
+            onSubmit={handleUploadDocument}
+            onCancel={() => setIsUploadDocumentModalOpen(false)}
+          />
+        </Modal>
+      )}
     </MainLayout>
   );
 };
