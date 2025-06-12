@@ -21,6 +21,11 @@ import PatientSearchPage from './pages/patients/PatientSearchPage';
 import MedicalRecordsPage from './pages/patients/MedicalRecordsPage.tsx';
 import EnhancedPatientDetailsPage from './features/patient-management/components/EnhancedPatientDetailsPage';
 
+// Consultation Management Pages
+import ConsultationsListPage from './pages/consultations/ConsultationsListPage';
+import ConsultationDetailsPage from './pages/consultations/ConsultationDetailsPage';
+import ConsultationReportsPage from './pages/consultations/ConsultationReportsPage';
+
 const App: React.FC = () => {
   const [session, setSession] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,6 +89,11 @@ const App: React.FC = () => {
         <Route path="/patients/search" element={<PatientSearchPage user={session} onLogout={handleLogout} />} />
         <Route path="/patients/records" element={<MedicalRecordsPage user={session} onLogout={handleLogout} />} />
         <Route path="/patient/:patientId" element={<EnhancedPatientDetailsPage />} />
+        
+        {/* Consultation Management */}
+        <Route path="/consultations" element={<ConsultationsListPage user={session} onLogout={handleLogout} />} />
+        <Route path="/consultations/:consultationId" element={<ConsultationDetailsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/consultations/reports" element={<ConsultationReportsPage user={session} onLogout={handleLogout} />} />
       </Routes>
     </Router>
   );
