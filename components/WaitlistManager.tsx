@@ -174,12 +174,12 @@ const WaitlistManager: React.FC<WaitlistManagerProps> = ({
     }
 
     try {
-      // Check for conflicts first
+      // Check for conflicts first - fix argument order
       const { data: conflicts, error: conflictError } = await AppointmentAPI.checkAppointmentConflicts(
+        userId,
         entry.preferredDate,
         entry.preferredTime,
-        30, // Default 30 minutes
-        userId
+        30 // Default 30 minutes
       );
 
       if (conflictError) throw conflictError;
