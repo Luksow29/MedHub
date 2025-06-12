@@ -89,7 +89,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
   const [isEditConsultationModalOpen, setIsEditConsultationModalOpen] = useState(false);
   const [isAddDiagnosisModalOpen, setIsAddDiagnosisModalOpen] = useState(false);
   const [isEditClinicalNotesModalOpen, setIsEditClinicalNotesModalOpen] = useState(false);
-  const [isEditVitalSignsModalOpen, setIsEditVitalSignsModalOpen] = useState(false);
+  const [isEditVitalSignsModalOpen, setIsEditVitalSignsModalOpen] = useState(false); // isVitalSignsFormOpen to isEditVitalSignsModalOpen
   const [isAddTreatmentModalOpen, setIsAddTreatmentModalOpen] = useState(false);
   const [isAddPrescriptionModalOpen, setIsAddPrescriptionModalOpen] = useState(false);
   const [isAddReferralModalOpen, setIsAddReferralModalOpen] = useState(false);
@@ -114,7 +114,11 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
 
   // Fetch all consultation data
   const fetchConsultationData = useCallback(async () => {
-    if (!consultationId) return;
+    if (!consultationId || !user?.id) {
+      setError("ஆலோசனை ஐடி அல்லது பயனர் ஐடி கிடைக்கவில்லை.");
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -531,6 +535,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
       fetchConsultationData();
       setEditingPrescription(null);
     } catch (err: any) {
+      setError(err.message);
       console.error('Error updating prescription:', err);
       setError(err.message);
     }
@@ -574,7 +579,6 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
       fetchConsultationData();
       setEditingReferral(null);
     } catch (err: any) {
-      setError(err.message);
       console.error('Error updating referral:', err);
       setError(err.message);
     }
@@ -1646,7 +1650,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
         />
       </Modal>
 
-      {isVitalSignsFormOpen && consultation && (
+      {isEditVitalSignsModalOpen && consultation && ( // isVitalSignsFormOpen to isEditVitalSignsModalOpen
         <Modal title={vitalSigns?.id ? getBilingualLabel("Edit Vital Signs", "முக்கிய அறிகுறிகளை திருத்து") : getBilingualLabel("Add Vital Signs", "முக்கிய அறிகுறிகளைச் சேர்")} onClose={() => setIsEditVitalSignsModalOpen(false)}>
           <VitalSignsForm
             vitalSigns={vitalSigns}
@@ -1654,11 +1658,12 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
             patientId={consultation.patientId}
             onSubmit={handleUpdateVitalSigns}
             onCancel={() => setIsEditVitalSignsModalOpen(false)}
+            isOpen={isEditVitalSignsModalOpen} // isOpen prop ஐ இங்கே சேர்க்கிறோம்
           />
         </Modal>
       )}
 
-      {isDiagnosisFormOpen && consultation && (
+      {isAddDiagnosisModalOpen && consultation && (
         <Modal title={getBilingualLabel("Add Diagnosis", "நோயறிதலைச் சேர்")} onClose={() => setIsAddDiagnosisModalOpen(false)}>
           <DiagnosisForm
             consultationId={consultationId!}
@@ -1692,12 +1697,12 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
             consultationId={consultation.id}
             patientId={consultation.patientId}
             onSubmit={handleUpdateClinicalNotes}
-            onCancel={() => setIsClinicalNotesModalOpen(false)}
+            onCancel={() => setIsEditClinicalNotesModalOpen(false)}
           />
         </Modal>
       )}
 
-      {isTreatmentFormOpen && consultation && (
+      {isAddTreatmentModalOpen && consultation && (
         <Modal title={getBilingualLabel("Add Treatment", "சிகிச்சையைச் சேர்")} onClose={() => setIsAddTreatmentModalOpen(false)}>
           <TreatmentForm
             consultationId={consultationId!}
