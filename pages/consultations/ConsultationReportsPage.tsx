@@ -84,7 +84,10 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
         ConsultationAPI.getConsultationsByPatientId(patientId, user.id)
       ]);
       if (detailsResult.error) throw detailsResult.error;
-      if (detailsResult.data) setSelectedPatientDetails({ id: detailsResult.data.id, userId: detailsResult.data.user_id, name: detailsResult.data.name, dob: detailsResult.data.dob, gender: detailsResult.data.gender, phone: detailsResult.data.contact_phone, email: detailsResult.data.contact_email, address: detailsResult.data.address, emergencyContactName: detailsResult.data.emergency_contact_name, emergencyContactPhone: detailsResult.data.emergency_contact_phone, preferredLanguage: detailsResult.data.preferred_language, preferredContactMethod: detailsResult.data.preferred_contact_method, createdAt: detailsResult.data.created_at, updatedAt: detailsResult.data.updated_at });
+      if (detailsResult.data) {
+        setSelectedPatientDetails({ id: detailsResult.data.id, userId: detailsResult.data.user_id, name: detailsResult.data.name, dob: detailsResult.data.dob, gender: detailsResult.data.gender, phone: detailsResult.data.contact_phone, email: detailsResult.data.contact_email, address: detailsResult.data.address, emergencyContactName: detailsResult.data.emergency_contact_name, emergencyContactPhone: detailsResult.data.emergency_contact_phone, preferredLanguage: detailsResult.data.preferred_language, preferredContactMethod: detailsResult.data.preferred_contact_method, createdAt: detailsResult.data.created_at, updatedAt: detailsResult.data.updated_at });
+      }
+
       if (consultationsResult.error) throw consultationsResult.error;
       if (consultationsResult.data) {
         const mappedConsultations = consultationsResult.data.map(c => ({ id: c.id, userId: c.user_id, patientId: c.patient_id, appointmentId: c.appointment_id, consultationDate: c.consultation_date, consultationTime: c.consultation_time, attendingPhysician: c.attending_physician, chiefComplaint: c.chief_complaint, status: c.status, followUpDate: c.follow_up_date, followUpNotes: c.follow_up_notes, createdAt: c.created_at, updatedAt: c.updated_at }));
@@ -107,7 +110,7 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
     };
     initializeData();
   }, [fetchPatients, fetchDiagnosisStats]);
-
+  
   const fetchDetailsForModal = async (consultationId: string) => {
     setIsDetailLoading(true);
     setSelectedConsultationDetails(null);
@@ -253,9 +256,9 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
                               <p className="font-semibold text-sm text-slate-800">{consult.consultationDate} - Dr. {consult.attendingPhysician}</p>
                               <p className="text-sm text-slate-600 mt-1"><span className='font-medium'>Chief Complaint:</span> {consult.chiefComplaint}</p>
                             </div>
-                            <div className="flex space-x-2 flex-shrink-0">
-                               <Button size="xs" variant="outline" onClick={() => handleViewSummaryClick(consult.id)}>{getBilingualLabel("Summary", "சுருக்கம்")}</Button>
-                               <Button size="xs" variant="outline" onClick={() => handleViewPrescriptionClick(consult.id)}>{getBilingualLabel("Rx", "மருந்து")}</Button>
+                            <div className="flex space-x-2 flex-shrink-0 mt-2 sm:mt-0">
+                               <Button size="xs" variant="primary" onClick={() => handleViewSummaryClick(consult.id)}>{getBilingualLabel("Summary", "சுருக்கம்")}</Button>
+                               <Button size="xs" variant="success" onClick={() => handleViewPrescriptionClick(consult.id)}>{getBilingualLabel("Rx", "மருந்து")}</Button>
                                <Button size="xs" variant="secondary" onClick={() => handleEditClick(consult.id)}>{getBilingualLabel("Edit", "திருத்து")}</Button>
                             </div>
                           </div>
