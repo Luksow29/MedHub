@@ -3,18 +3,20 @@ import { User } from '@supabase/supabase-js';
 import MainLayout from '../../components/layout/MainLayout';
 import Button from '../../components/shared/Button';
 import PrintExportButton from '../../components/shared/PrintExportButton';
+// NEW: Import the new modal component and its type
+import DetailedSummaryModal, { DetailedConsultationSummary } from '../../components/consultation/DetailedSummaryModal';
 
 // Types
 import {
   Patient,
   DiagnosisStatistic,
-  Consultation // Patient Summary-க்கு Consultation type தேவை
+  Consultation
 } from '../../types';
 
 // API functions
 import * as PatientAPI from '../../api/patients';
 import * as DiagnosesAPI from '../../api/diagnoses';
-import * as ConsultationAPI from '../../api/consultations'; // Consultation API-ஐ இறக்குமதி செய்யவும்
+import * as ConsultationAPI from '../../api/consultations';
 
 interface ConsultationReportsPageProps {
   user: User;
@@ -24,6 +26,7 @@ interface ConsultationReportsPageProps {
 const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user, onLogout }) => {
   // General State
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailLoading, setIsDetailLoading] = useState(false); // Loading for the modal
   const [error, setError] = useState<string | null>(null);
   
   // Data State
@@ -34,6 +37,10 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
   const [selectedPatientDetails, setSelectedPatientDetails] = useState<Patient | null>(null);
   const [patientConsultations, setPatientConsultations] = useState<Consultation[]>([]);
   
+  // NEW: State for the detailed summary modal
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [selectedConsultationDetails, setSelectedConsultationDetails] = useState<DetailedConsultationSummary | null>(null);
+
   // Report filters
   const [reportType, setReportType] = useState<'diagnosis_trends' | 'patient_summary'>('diagnosis_trends');
   const [startDate, setStartDate] = useState<string>('');
@@ -48,7 +55,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
       const { data, error } = await PatientAPI.getAllPatients(user.id);
       if (error) throw error;
       if (data) {
-        // snake_case to camelCase mapping
         const mappedPatients = data.map(p => ({
             id: p.id,
             userId: p.user_id,
@@ -93,16 +99,15 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
     }
   }, [user.id, startDate, endDate]);
 
-  // NEW: Fetch all necessary data for the Patient Summary report
+  // Fetch all necessary data for the Patient Summary report
   const fetchPatientSummary = useCallback(async (patientId: string) => {
     if (!patientId) return;
     setIsLoading(true);
     setError(null);
-    setPatientConsultations([]); // Reset previous data
+    setPatientConsultations([]);
     setSelectedPatientDetails(null);
 
     try {
-      // Fetch patient details and their consultation history in parallel
       const [detailsResult, consultationsResult] = await Promise.all([
         PatientAPI.getPatientById(patientId, user.id),
         ConsultationAPI.getConsultationsByPatientId(patientId, user.id)
@@ -130,7 +135,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
 
       if (consultationsResult.error) throw consultationsResult.error;
       if (consultationsResult.data) {
-        // Map snake_case to camelCase for consultations
         const mappedConsultations = consultationsResult.data.map(c => ({
             id: c.id,
             userId: c.user_id,
@@ -166,6 +170,33 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
     };
     initializeData();
   }, [fetchPatients, fetchDiagnosisStats]);
+  
+    // NEW: Handler to open and fetch data for the detailed summary modal
+    const handleViewDetailsClick = async (consultationId: string) => {
+        setIsDetailLoading(true);
+        setIsSummaryModalOpen(true);
+        setSelectedConsultationDetails(null);
+  
+        const { data, error } = await ConsultationAPI.getDetailedConsultationSummary(consultationId, user.id);
+        
+        if (error) {
+            setError('Failed to load consultation details.');
+            setIsSummaryModalOpen(false);
+        } else if (data) {
+            // Map snake_case from DB to camelCase for UI components
+            const mappedData: DetailedConsultationSummary = {
+                consultation: { ...data.consultation, patientId: data.consultation.patient_id, consultationDate: data.consultation.consultation_date, chiefComplaint: data.consultation.chief_complaint, attendingPhysician: data.consultation.attending_physician, consultationTime: data.consultation.consultation_time, createdAt: data.consultation.created_at, updatedAt: data.consultation.updated_at },
+                patient: { ...data.patient, userId: data.patient.user_id, dob: data.patient.dob, gender: data.patient.gender, phone: data.patient.contact_phone, email: data.patient.contact_email, emergencyContactName: data.patient.emergency_contact_name, emergencyContactPhone: data.patient.emergency_contact_phone, preferredLanguage: data.patient.preferred_language, preferredContactMethod: data.patient.preferred_contact_method, createdAt: data.patient.created_at, updatedAt: data.patient.updated_at },
+                vitalSigns: data.vitalSigns ? { ...data.vitalSigns, userId: data.vitalSigns.user_id, consultationId: data.vitalSigns.consultation_id, patientId: data.vitalSigns.patient_id, heartRate: data.vitalSigns.heart_rate, bloodPressureSystolic: data.vitalSigns.blood_pressure_systolic, bloodPressureDiastolic: data.vitalSigns.blood_pressure_diastolic, respiratoryRate: data.vitalSigns.respiratory_rate, oxygenSaturation: data.vitalSigns.oxygen_saturation, painScore: data.vitalSigns.pain_score, temperatureUnit: data.vitalSigns.temperature_unit, heightUnit: data.vitalSigns.height_unit, weightUnit: data.vitalSigns.weight_unit, createdAt: data.vitalSigns.created_at, updatedAt: data.vitalSigns.updated_at } : null,
+                clinicalNote: data.clinicalNote ? { ...data.clinicalNote, userId: data.clinicalNote.user_id, consultationId: data.clinicalNote.consultation_id, patientId: data.clinicalNote.patient_id, createdAt: data.clinicalNote.created_at, updatedAt: data.clinicalNote.updated_at } : null,
+                diagnoses: data.diagnoses.map(d => ({ ...d, userId: d.user_id, consultationId: d.consultation_id, patientId: d.patient_id, icdCode: d.icd_code, isPrimary: d.is_primary, icdVersion: d.icd_version, diagnosisDate: d.diagnosis_date, createdAt: d.created_at, updatedAt: d.updated_at })),
+                treatments: data.treatments.map(t => ({ ...t, userId: t.user_id, consultationId: t.consultation_id, patientId: t.patient_id, treatmentName: t.treatment_name, treatmentCode: t.treatment_code, followUpRequired: t.follow_up_required, followUpInterval: t.follow_up_interval, createdAt: t.created_at, updatedAt: t.updated_at })),
+                prescriptions: data.prescriptions.map(p => ({ ...p, userId: p.user_id, consultationId: p.consultation_id, patientId: p.patient_id, medicationName: p.medication_name, isRefillable: p.is_refillable, refillCount: p.refill_count, specialInstructions: p.special_instructions, createdAt: p.created_at, updatedAt: p.updated_at }))
+            };
+            setSelectedConsultationDetails(mappedData);
+        }
+        setIsDetailLoading(false);
+    };
 
   // Generate report based on selected type and filters
   const handleGenerateReport = () => {
@@ -187,7 +218,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
     setSelectedPatientId('');
     setSelectedPatientDetails(null);
     setPatientConsultations([]);
-    // After resetting, fetch the default report again
     if (reportType === 'diagnosis_trends') {
         fetchDiagnosisStats();
     }
@@ -221,7 +251,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
         <h3 className="text-lg font-semibold text-slate-800 mb-4">
           {getBilingualLabel("Report Configuration", "அறிக்கை கட்டமைப்பு")}
         </h3>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="reportType" className="block text-sm font-medium text-slate-700 mb-2">
@@ -236,7 +265,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
               <option value="diagnosis_trends">{getBilingualLabel("Diagnosis Trends", "நோயறிதல் போக்குகள்")}</option>
               <option value="patient_summary">{getBilingualLabel("Patient Summary", "நோயாளி சுருக்கம்")}</option>
             </select>
-            
             {reportType === 'patient_summary' && (
               <div className="mt-4">
                 <label htmlFor="patientId" className="block text-sm font-medium text-slate-700 mb-2">
@@ -256,7 +284,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
               </div>
             )}
           </div>
-          
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -287,7 +314,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
             </div>
           </div>
         </div>
-        
         <div className="mt-6 flex justify-end space-x-3">
           <Button onClick={handleResetFilters} variant="secondary">
             {getBilingualLabel("Reset Filters", "வடிகட்டிகளை மீட்டமைக்கவும்")}
@@ -312,11 +338,9 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
                 size="sm"
               />
             </div>
-            
             {!isLoading && diagnosisStats.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
-                  {/* Table Head */}
                   <thead className="bg-slate-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{getBilingualLabel("ICD Code", "ICD குறியீடு")}</th>
@@ -325,7 +349,6 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">{getBilingualLabel("Percentage", "சதவீதம்")}</th>
                     </tr>
                   </thead>
-                  {/* Table Body */}
                   <tbody className="bg-white divide-y divide-slate-200">
                     {diagnosisStats.map((stat, index) => (
                       <tr key={index} className="hover:bg-slate-50">
@@ -366,33 +389,24 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
                     />
                 )}
             </div>
-            
             {!isLoading && selectedPatientDetails ? (
                 <div className="space-y-6">
-                    {/* Patient Details Section */}
                     <div className="border-b border-slate-200 pb-4">
                         <h4 className="text-md font-semibold text-slate-700">{selectedPatientDetails.name}</h4>
-                        <p className="text-sm text-slate-500">
-                            {selectedPatientDetails.gender} | DOB: {selectedPatientDetails.dob}
-                        </p>
-                        <p className="text-sm text-slate-500">
-                            {getBilingualLabel("Contact", "தொடர்புக்கு")}: {selectedPatientDetails.phone} | {selectedPatientDetails.email}
-                        </p>
+                        <p className="text-sm text-slate-500">DOB: {selectedPatientDetails.dob} | {selectedPatientDetails.gender}</p>
                     </div>
-
-                    {/* Consultation History Section */}
                     <div>
                         <h4 className="text-md font-semibold text-slate-700 mb-2">{getBilingualLabel("Consultation History", "ஆலோசனை வரலாறு")}</h4>
                         {patientConsultations.length > 0 ? (
                             <ul className="space-y-3">
                                 {patientConsultations.map(consult => (
-                                    <li key={consult.id} className="p-3 bg-slate-50 rounded-md border border-slate-200">
-                                        <p className="font-semibold text-sm text-slate-800">
-                                            {consult.consultationDate} - {getBilingualLabel("Dr.", "மரு.")} {consult.attendingPhysician}
-                                        </p>
-                                        <p className="text-sm text-slate-600 mt-1">
-                                            <span className='font-medium'>{getBilingualLabel("Chief Complaint", "முதன்மை புகார்")}:</span> {consult.chiefComplaint}
-                                        </p>
+                                    <li 
+                                        key={consult.id} 
+                                        className="p-3 bg-slate-50 rounded-md border border-slate-200 hover:bg-sky-50 hover:border-sky-300 cursor-pointer transition-colors"
+                                        onClick={() => handleViewDetailsClick(consult.id)}
+                                    >
+                                        <p className="font-semibold text-sm text-slate-800">{consult.consultationDate} - Dr. {consult.attendingPhysician}</p>
+                                        <p className="text-sm text-slate-600 mt-1"><span className='font-medium'>Chief Complaint:</span> {consult.chiefComplaint}</p>
                                     </li>
                                 ))}
                             </ul>
@@ -411,6 +425,12 @@ const ConsultationReportsPage: React.FC<ConsultationReportsPageProps> = ({ user,
           </>
         )}
       </div>
+
+      <DetailedSummaryModal 
+        isOpen={isSummaryModalOpen}
+        onClose={() => setIsSummaryModalOpen(false)}
+        summaryData={isDetailLoading ? null : selectedConsultationDetails}
+      />
     </MainLayout>
   );
 };
