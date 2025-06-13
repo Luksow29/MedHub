@@ -211,28 +211,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
       // Fetch vital signs
       const { data: vitalSignsData, error: vitalSignsError } = await VitalSignsAPI.getVitalSignsByConsultationId(consultationId, user.id);
       if (!vitalSignsError && vitalSignsData) {
-        setVitalSigns({
-          id: vitalSignsData.id,
-          userId: vitalSignsData.user_id,
-          consultationId: vitalSignsData.consultation_id,
-          patientId: vitalSignsData.patient_id,
-          temperature: vitalSignsData.temperature,
-          temperatureUnit: vitalSignsData.temperature_unit,
-          heartRate: vitalSignsData.heart_rate,
-          respiratoryRate: vitalSignsData.respiratory_rate,
-          bloodPressureSystolic: vitalSignsData.blood_pressure_systolic,
-          bloodPressureDiastolic: vitalSignsData.blood_pressure_diastolic,
-          oxygenSaturation: vitalSignsData.oxygen_saturation,
-          height: vitalSignsData.height,
-          heightUnit: vitalSignsData.height_unit,
-          weight: vitalSignsData.weight,
-          weightUnit: vitalSignsData.weight_unit,
-          bmi: vitalSignsData.bmi,
-          painScore: vitalSignsData.pain_score,
-          notes: vitalSignsData.notes,
-          createdAt: vitalSignsData.created_at,
-          updatedAt: vitalSignsData.updated_at
-        });
+        setVitalSigns(vitalSignsData);
       }
       
       // Fetch treatments
