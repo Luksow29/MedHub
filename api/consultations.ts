@@ -292,3 +292,87 @@ export const getConsultationStatistics = async (userId: string) => {
     };
   }
 };
+
+
+// NEW FUNCTION: Get all details for a single consultation summary
+export const getDetailedConsultationSummary = async (consultationId: string, userId: string) => {
+  try {
+    // Fetch all related data in parallel
+    const [
+      consultationResult,
+      vitalSignsResult,
+      clinicalNoteResult,
+      diagnosesResult,
+      treatmentsResult,
+      prescriptionsResult,
+    ] = await Promise.all([
+      // 1. Consultation and Patient base details
+      supabase
+        .from('consultations')
+        .select('*, patients(*)')
+        .eq('id', consultationId)
+        .eq('user_id', userId)
+        .single(),
+
+      // 2. Vital Signs
+      supabase
+        .from('vital_signs')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(), // Use maybeSingle() to avoid error if no record exists
+
+      // 3. Clinical Notes
+      supabase
+        .from('clinical_notes')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .eq('user_id', userId)
+        .maybeSingle(),
+        
+      // 4. Diagnoses
+      supabase
+        .from('diagnoses')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .eq('user_id', userId)
+        .order('is_primary', { ascending: false }),
+
+      // 5. Treatments
+      supabase
+        .from('treatments')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .eq('user_id', userId),
+
+      // 6. Prescriptions
+      supabase
+        .from('prescriptions')
+        .select('*')
+        .eq('consultation_id', consultationId)
+        .eq('user_id', userId),
+    ]);
+
+    // Check for a primary error in fetching the consultation itself
+    if (consultationResult.error) throw consultationResult.error;
+
+    // Aggregate all data into a single summary object
+    const summaryData = {
+      consultation: consultationResult.data,
+      patient: consultationResult.data.patients,
+      vitalSigns: vitalSignsResult.data as DbVitalSigns | null,
+      clinicalNote: clinicalNoteResult.data as DbClinicalNote | null,
+      diagnoses: diagnosesResult.data as DbDiagnosis[],
+      treatments: treatmentsResult.data as DbTreatment[],
+      prescriptions: prescriptionsResult.data as DbPrescription[],
+    };
+
+    return { data: summaryData, error: null };
+
+  } catch (error: any) {
+    console.error("Error fetching detailed consultation summary:", error);
+    return { data: null, error };
+  }
+};
