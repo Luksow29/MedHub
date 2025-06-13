@@ -293,7 +293,6 @@ export const getConsultationStatistics = async (userId: string) => {
   }
 };
 
-
 // NEW FUNCTION: Get all details for a single consultation summary
 export const getDetailedConsultationSummary = async (consultationId: string, userId: string) => {
   try {
