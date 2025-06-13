@@ -991,7 +991,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
                 )}
                 
                 {/* Heart Rate */}
-                {vitalSigns.heartRate && (
+                {vitalSigns.heartRate !== null && (
                   <div className="bg-white p-4 rounded-lg border border-slate-200">
                     <p className="text-sm text-slate-500">{getBilingualLabel("Heart Rate", "இதய துடிப்பு")}</p>
                     <p className="text-xl font-semibold text-slate-800">
