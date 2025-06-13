@@ -2,10 +2,8 @@
 
 import { supabase } from '../lib/supabase';
 import { 
-  Consultation, 
   NewDbConsultation, 
-  UpdateDbConsultation, 
-  ConsultationSummary
+  UpdateDbConsultation,
 } from '../types';
 import { ConsultationStatus } from '../types/consultation';
 
@@ -104,6 +102,42 @@ export const deleteConsultation = async (id: string, userId: string) => {
     .eq('id', id)
     .eq('user_id', userId);
 };
+
+// NEW FUNCTION: Update only the status of a consultation
+export const updateConsultationStatus = async (
+  id: string,
+  status: ConsultationStatus,
+  userId: string
+) => {
+  return supabase
+    .from('consultations')
+    .update({ status: status, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+};
+
+// NEW FUNCTION: Schedule a follow-up for a consultation
+export const scheduleFollowUp = async (
+  consultationId: string,
+  followUpDate: string,
+  followUpNotes: string,
+  userId: string
+) => {
+  return supabase
+    .from('consultations')
+    .update({
+      follow_up_date: followUpDate,
+      follow_up_notes: followUpNotes,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', consultationId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+};
+
 
 // Create a consultation from an appointment
 export const createConsultationFromAppointment = async (appointmentId: string, userId: string) => {
