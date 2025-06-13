@@ -981,7 +981,7 @@ const ConsultationDetailsPage: React.FC<ConsultationDetailsPageProps> = ({ user,
             {vitalSigns ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Temperature */}
-                {vitalSigns.temperature && (
+                {vitalSigns.temperature !== null && (
                   <div className="bg-white p-4 rounded-lg border border-slate-200">
                     <p className="text-sm text-slate-500">{getBilingualLabel("Temperature", "வெப்பநிலை")}</p>
                     <p className="text-xl font-semibold text-slate-800">
