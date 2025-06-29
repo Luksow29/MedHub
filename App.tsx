@@ -26,6 +26,10 @@ import ConsultationsListPage from './pages/consultations/ConsultationsListPage';
 import ConsultationDetailsPage from './pages/consultations/ConsultationDetailsPage';
 import ConsultationReportsPage from './pages/consultations/ConsultationReportsPage';
 
+// Payment Management Pages
+import PaymentsPage from './pages/payments/PaymentsPage';
+import InvoicesPage from './pages/payments/InvoicesPage';
+
 const App: React.FC = () => {
   const [session, setSession] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +98,10 @@ const App: React.FC = () => {
         <Route path="/consultations" element={<ConsultationsListPage user={session} onLogout={handleLogout} />} />
         <Route path="/consultations/:consultationId" element={<ConsultationDetailsPage user={session} onLogout={handleLogout} />} />
         <Route path="/consultations/reports" element={<ConsultationReportsPage user={session} onLogout={handleLogout} />} />
+        
+        {/* Payment Management */}
+        <Route path="/payments" element={<PaymentsPage user={session} onLogout={handleLogout} />} />
+        <Route path="/payments/invoices" element={<InvoicesPage user={session} onLogout={handleLogout} />} />
       </Routes>
     </Router>
   );

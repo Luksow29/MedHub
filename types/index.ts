@@ -2,6 +2,7 @@
 
 // Import all types from separate files
 export * from './consultation';
+export * from './payment';
 
 // --- Enums ---
 export enum ReminderMethod {
